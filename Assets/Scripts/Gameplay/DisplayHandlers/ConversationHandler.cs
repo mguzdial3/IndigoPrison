@@ -33,12 +33,6 @@ public class ConversationHandler : DisplayHandler {
 
 		m_conversationHistories = new Dictionary<string,List<DialogueLine> > ();
 		m_conversationDisplays = new List<ConversationDisplayUnit> ();
-	
-		//TODO; remove test add stuff
-		AddLine ("Sally Fisher", Color.cyan, new DialogueLine ("Sally Fisher", Color.cyan, "This is a test of testy testness. I tested the test testily to test my testing."));
-		AddLine ("Sally Fisher", Color.cyan, new DialogueLine (PLAYER_NAME, Color.white, "I got the thing you wanted. That one thing, the special thing. You know? The thing."));
-		AddLine ("Sally Fisher", Color.cyan, new DialogueLine ("Sally Fisher", Color.cyan, "We have a problem."));
-		AddLine ("Sally Fisher", Color.cyan, new DialogueLine (PLAYER_NAME, Color.white, "Yo what's up?"));
 	}
 
 	public override string UpdateDisplay ()
@@ -74,6 +68,10 @@ public class ConversationHandler : DisplayHandler {
 			ChatHandler.Instance.UpdateList(dialogue);		
 		}
 
+	}
+
+	public void AddLine(Character character, string dialogue){
+		AddLine (character.CharacterName, character.CharacterColor, new DialogueLine (character.CharacterName, character.CharacterColor, dialogue));
 	}
 
 	///////////////

@@ -23,7 +23,8 @@ public class ChatHandler : DisplayHandler {
 
 	private const int MAX_LINE_LENGTH = 40;
 
-
+	//For Editor Text Input
+	private bool m_textInput;
 
 	public override void Init (){
 		base.Init ();
@@ -49,26 +50,51 @@ public class ChatHandler : DisplayHandler {
 		m_currentCharacter = null;
 	}
 
+	//Only for testing text stuff in editor
+	#if UNITY_EDITOR
+	void OnGUI(){
+		if (m_textInput) {
+			float height= Screen.height;
+			m_keyboardInput = GUI.TextField(new Rect(0, height*0.9f, Screen.width,height*0.1f),m_keyboardInput);		
+		}
+	}
+	#endif
 
 	public override string UpdateDisplay (){
 		if (m_TransferToConversation) {
+			m_TransferToConversation=false;
 			return ConversationHandler.Instance.DisplayName;		
 		}
 
+		#if UNITY_EDITOR
+		if(m_textInput){
+			if(Input.GetKeyUp(KeyCode.S) || Input.GetKey(KeyCode.KeypadEnter) || Input.GetKey(KeyCode.Tab) || Input.GetKey(KeyCode.RightArrow)){
+				m_textInput = false;
+				ConversationHandler.Instance.AddLine(characterName.text,characterName.color,new DialogueLine(m_keyboardInput));
+				m_keyboardInput="";
+			}
+		}
+		#else
 		if (m_keyboard != null && TouchScreenKeyboard.visible) {
 			m_keyboardInput = m_keyboard.text;
-
+			
 			otherText.transform.position = Vector3.up*(TouchScreenKeyboard.area.height/Screen.height);
 			playerText.transform.position = Vector3.right+Vector3.up*(TouchScreenKeyboard.area.height/Screen.height);
-
+			
 		}
 		if(!TouchScreenKeyboard.visible && !string.IsNullOrEmpty(m_keyboardInput)){
 			ConversationHandler.Instance.AddLine(characterName.text,characterName.color,new DialogueLine(m_keyboardInput));
 			m_keyboardInput="";
 		}
 
+		#endif
+
 		return base.UpdateDisplay ();
 	}
+
+
+
+
 
 	//Setter for current character and dialogue lines
 	public void SetCurrentConversation(string currentCharacter, Color characterColor, List<DialogueLine> listOfLines){
@@ -167,6 +193,10 @@ public class ChatHandler : DisplayHandler {
 
 	public void OpenKeyboard(UIButton button){
 		m_keyboard = TouchScreenKeyboard.Open(m_keyboardInput, TouchScreenKeyboardType.ASCIICapable);
+
+		#if UNITY_EDITOR
+		m_textInput=true;
+		#endif
 	}
 
 

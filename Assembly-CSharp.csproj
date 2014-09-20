@@ -46,14 +46,19 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\AI\Character.cs" />
+     <Compile Include="Assets\AI\CharacterManager.cs" />
+     <Compile Include="Assets\AI\DramaManager.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\ChatHandler.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\ConversationHandler.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\DisplayHandler.cs" />
+     <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\ConstantSpinner.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\ConversationDisplayUnit.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\DialogueLine.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\ScaleGUIText.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\ScaleGUITexture.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\UIButton.cs" />
+     <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\MainMenuHandler.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\MapHandler.cs" />
      <Compile Include="Assets\Scripts\Gameplay\GameplayManager.cs" />
      <Compile Include="Assets\Scripts\Gameplay\LocationHandler.cs" />

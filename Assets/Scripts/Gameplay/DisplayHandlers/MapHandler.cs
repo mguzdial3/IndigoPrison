@@ -24,12 +24,17 @@ public class MapHandler : DisplayHandler {
 	private Texture2D m_fogOfWar;
 	private Color m_fogOfWarColor = Color.black;
 
-	private const float MAP_SCALE = 100000f; //Scale for shifting changes in longitude/latitude to map points
+	private const float MAP_SCALE = 8000f; //Scale for shifting changes in longitude/latitude to map points
 	private readonly Vector2 PLAYER_SIZE = new Vector2 (30, 30);
 	private readonly Vector2 EXTRA_BUFFER = new Vector2(30,30);
 
 	//Check for returning to conversation
 	private bool m_TransferToConversation;
+
+	//TODO; remove for after demo
+	private bool foundGuard = false;
+	private bool refoundPrisoner = false;
+	private bool canRefindPrisoner = false;
 
 	public override void Init (){
 		base.Init ();
@@ -52,8 +57,6 @@ public class MapHandler : DisplayHandler {
 
 		m_fogOfWar.Apply (false);
 
-
-
 		shadow.texture = (Texture)m_fogOfWar;
 	}
 
@@ -62,7 +65,6 @@ public class MapHandler : DisplayHandler {
 			m_TransferToConversation=false;
 			return ConversationHandler.Instance.DisplayName;		
 		}
-
 
 		return base.UpdateDisplay ();
 	}
@@ -89,9 +91,13 @@ public class MapHandler : DisplayHandler {
 			GUITexture guiTexture = go.GetComponent<GUITexture>();
 
 			if(guiTexture!=null){
-				Vector2 mapPos = TransferPrisonVectorToMapVector(locationVector);
-				guiTexture.transform.position = GetPositionGivenMapAndTexture(mapPos,guiTexture);
+				Vector3 newPos = GetPositionGivenMapAndTexture(locationVector,guiTexture);
 
+				newPos.x/=Screen.width;
+				newPos.y/=Screen.height;
+				guiTexture.transform.position = newPos;
+
+				guiTexture.transform.parent = transform;
 				m_otherIndicators.Add (nameOfIndicator,guiTexture);
 			}
 			else{
@@ -143,6 +149,36 @@ public class MapHandler : DisplayHandler {
 		m_fogOfWar.Apply (false);
 
 		playerIndicator.transform.position = newPos;
+
+		//Check if we're new a new one
+		//TODO; do this in a non demo way
+
+		bool updateDemo = false;
+		foreach (KeyValuePair<string, GUITexture> kvp in m_otherIndicators) {
+			Vector3 pos = kvp.Value.transform.position;
+			pos.z = -9f;
+			Vector3 dist = 	playerIndicator.transform.position-pos;
+
+			if(dist.magnitude<.035f){
+				if(!foundGuard && kvp.Value.gameObject.name.Contains("Guard")){
+					foundGuard=true;
+					updateDemo=true;
+					canRefindPrisoner=true;
+				}
+				else if(kvp.Value.gameObject.name.Contains("Item")){
+					updateDemo=true;
+				}
+				else if(canRefindPrisoner && !refoundPrisoner && kvp.Value.gameObject.name.Contains("Prisoner")){
+					updateDemo=true;
+					refoundPrisoner = true;
+					canRefindPrisoner = false;
+				}
+			}
+		}
+
+		if (updateDemo) {
+			GameplayManager.Instance.UpdateDemo();		
+		}
 
 	}
 
