@@ -87,16 +87,19 @@ public class GameplayManager : MonoBehaviour {
 			ConversationHandler.Instance.AddLine (m_dramaManager.GetGuard (), "We're on lockdown so I can't move. But you need to head to the other end of the prison");
 
 			MapHandler.Instance.AddIndicator("Guard Goal", MapHandler.ITEM_ICON, new Vector2(Screen.width*0.9f,Screen.height/2));
+			SwitchDisplays(ConversationHandler.Instance.DisplayName);
 		}
 		else if(currDemo==2){
 			MapHandler.Instance.DestroyIndicator("Guard Goal");
 			MapHandler.Instance.DestroyIndicator("Prisoner Goal");
 
 			ConversationHandler.Instance.AddLine (m_dramaManager.GetPrisoner (), "You got it! Bring it back to me!");
+			SwitchDisplays(ConversationHandler.Instance.DisplayName);
 		}
 		else if(currDemo==3){
 			
 			ConversationHandler.Instance.AddLine (m_dramaManager.GetPrisoner (), "I escaped! The end!");
+			SwitchDisplays(ConversationHandler.Instance.DisplayName);
 		}
 
 
