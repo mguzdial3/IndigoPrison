@@ -1,0 +1,15 @@
+## gitignore to exclude stupid files ##
+
+# Windows (Visual Studio)
+*.suo
+*.user
+*.user
+[Dd]ebug/
+[Rr]elease/
+
+# Build Files
+[Bb]in/
+[Oo]bj/
+
+*.obj
+*.pdb
