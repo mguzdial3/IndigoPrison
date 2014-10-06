@@ -11,5 +11,7 @@
 [Bb]in/
 [Oo]bj/
 
+# Don't want to commit DLLs every time. Please remember to build external libs.
+*.dll
 *.obj
 *.pdb
