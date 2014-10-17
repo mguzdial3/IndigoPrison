@@ -38,7 +38,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="Action.cs" />
+    <Compile Include="Character.cs" />
+    <Compile Include="Conditions.cs" />
+    <Compile Include="GameState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -50,6 +53,6 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-	<Copy SourceFiles="$(OutputPath)$(AssemblyName).dll;$(OutputPath)$(AssemblyName).pdb" DestinationFolder="$(ProjectDir)../../unity/Assets/Scripts/" />
-  </Target>  
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll;$(OutputPath)$(AssemblyName).pdb" DestinationFolder="$(ProjectDir)../../unity/Assets/Scripts/" />
+  </Target>
 </Project>
