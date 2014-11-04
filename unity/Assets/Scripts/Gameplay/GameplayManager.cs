@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Indigo;
 
 //Handles
 public class GameplayManager : MonoBehaviour {
@@ -11,6 +12,7 @@ public class GameplayManager : MonoBehaviour {
 	private string m_currDisplay;
 
 	private DramaManager m_dramaManager;
+	private GameState currGameState;
 
 	//TODO; get rid of after demo
 	public static GameplayManager Instance;
@@ -30,8 +32,8 @@ public class GameplayManager : MonoBehaviour {
 			m_displays.Add(display.DisplayName,display);
 		}
 
-		//TODO; Instantiate the situation, characters and their initial goals
-		m_dramaManager = new DramaManager ();
+		m_dramaManager = new DramaManager (Screen.width,Screen.height);
+		currGameState = m_dramaManager.InitializeGameState ();
 
 		//Start the display to start with
 		if (m_displays.ContainsKey (displayToStartWith)) {
@@ -42,10 +44,6 @@ public class GameplayManager : MonoBehaviour {
 			Debug.LogError("GameplayManager Error: displayToStartWith did not match a Handler name"); 
 		}
 
-		ConversationHandler.Instance.AddLine (m_dramaManager.GetPrisoner (), "Hey, can't explain, but I need you to help me escape.");
-		ConversationHandler.Instance.AddLine (m_dramaManager.GetPrisoner (), "I've marked an info point on your map. Grab that for me, please");
-
-		MapHandler.Instance.AddIndicator ("Prisoner Goal", MapHandler.ITEM_ICON, new Vector2 (Screen.width * 0.1f, Screen.height / 2));
 		Instance = this;
 	}
 
@@ -61,13 +59,60 @@ public class GameplayManager : MonoBehaviour {
 			}
 		}
 
-		//TODO; Determine what state we are in (Player Moving to Goal, Player Chatting, A.I. Replanning)
+		//Make Changes to Our Internal GameState based on actual one
+		Vector2 playerPosCurr = MapHandler.Instance.PlayerPos;
+		currGameState.Player.SetLocation (playerPosCurr.x, playerPosCurr.y);
 
-		//TODO; Implement waiting/timer for when player is moving to goal
+		currGameState = m_dramaManager.UpdateGameState (currGameState);
 
-		//TODO; Implement chatbot whatever
+		UpdateDisplay ();
 
-		//TODO; Implement A.I. Replanning and all content for plans
+	}
+
+	public void UpdateDisplay(){
+
+		//CHARACTER DISPLAYS
+		foreach (Character c in currGameState.Characters) {
+			if(c.Alive && !c.Hidden && !MapHandler.Instance.HasIndicator(c.Name)){
+				int characterType = c.Name.Contains(DramaManager.GUARD_TITLE) ? MapHandler.GUARD_ICON: MapHandler.PRISONER_ICON;
+
+				MapHandler.Instance.AddIndicator(c.Name,characterType,new Vector2(c.X,c.Y));
+			}
+			else if(((c.Alive && c.Hidden) || (!c.Alive)) && MapHandler.Instance.HasIndicator(c.Name)){
+				MapHandler.Instance.DestroyIndicator(c.Name);
+			}
+		}
+
+		//ITEM DISPLAYS
+		foreach (Item i in currGameState.Items) {
+			if(i.Alive && !i.Hidden && !MapHandler.Instance.HasIndicator(i.Name)){
+				MapHandler.Instance.AddIndicator(i.Name,MapHandler.ITEM_ICON,new Vector2(i.X,i.Y));
+			}
+			else if( ((i.Alive && i.Hidden) || (!i.Alive)) && MapHandler.Instance.HasIndicator(i.Name)){
+				MapHandler.Instance.DestroyIndicator(i.Name);
+			}
+		}
+
+		//CONVERSATION DISPLAYS
+		foreach(KeyValuePair<string, List<DialogueLine>> kvp in currGameState.Conversations){
+			if(ConversationHandler.Instance.HasConversation(kvp.Key)){
+				int ourCount = ConversationHandler.Instance.GetConversationLength(kvp.Key);
+
+				if(ourCount!=kvp.Value.Count){
+					for(int i = ourCount; i<kvp.Value.Count; i++){
+						ConversationHandler.Instance.AddLine(kvp.Key,kvp.Value[i]);
+					}
+				}
+
+			}
+			else{
+				foreach(DialogueLine line in kvp.Value){
+					ConversationHandler.Instance.AddLine(kvp.Key,line);
+				}
+			}
+		}
+
+
 	}
 
 	private void SwitchDisplays(string nextDisplay){
@@ -77,35 +122,6 @@ public class GameplayManager : MonoBehaviour {
 		m_currDisplay = nextDisplay;
 		m_displays [m_currDisplay].SwitchToDisplay ();
 	}
-
-	//TODO; REMOVE: THIS IS FOR TESTING
-	private static int currDemo = 0;
-	public void UpdateDemo(){
-		currDemo++;
-		if (currDemo == 1) {
-			ConversationHandler.Instance.AddLine (m_dramaManager.GetGuard (), "I don't know what the prisoner told you. But you can't help them.");
-			ConversationHandler.Instance.AddLine (m_dramaManager.GetGuard (), "We're on lockdown so I can't move. But you need to head to the other end of the prison");
-
-			MapHandler.Instance.AddIndicator("Guard Goal", MapHandler.ITEM_ICON, new Vector2(Screen.width*0.9f,Screen.height/2));
-			SwitchDisplays(ConversationHandler.Instance.DisplayName);
-		}
-		else if(currDemo==2){
-			MapHandler.Instance.DestroyIndicator("Guard Goal");
-			MapHandler.Instance.DestroyIndicator("Prisoner Goal");
-
-			ConversationHandler.Instance.AddLine (m_dramaManager.GetPrisoner (), "You got it! Bring it back to me!");
-			SwitchDisplays(ConversationHandler.Instance.DisplayName);
-		}
-		else if(currDemo==3){
-			
-			ConversationHandler.Instance.AddLine (m_dramaManager.GetPrisoner (), "I escaped! The end!");
-			SwitchDisplays(ConversationHandler.Instance.DisplayName);
-		}
-
-
-	}
-
-
 
 
 }

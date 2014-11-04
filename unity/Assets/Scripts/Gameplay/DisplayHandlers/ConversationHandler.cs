@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Indigo;
 
 //Using a singleton structure for these too so that interactions with other displays can affect this one
 public class ConversationHandler : DisplayHandler {
@@ -50,28 +51,39 @@ public class ConversationHandler : DisplayHandler {
 		return base.UpdateDisplay ();
 	}
 
-	//Add character dialogue lines through here by characterName and the current dialogue line in that conversation
-	public void AddLine(string characterName, Color characterColor, DialogueLine dialogue){
-		if (!m_conversationHistories.ContainsKey(characterName)) { //New conversation
-			m_conversationHistories.Add (characterName, new List<DialogueLine>());
+	public bool HasConversation(string characterName){
+		return m_conversationHistories.ContainsKey (characterName);
+	}
 
-			AddConversationDisplay(characterName, characterColor,dialogue);
+	public int GetConversationLength(string characterName){
+		int toReturn = 0;
+
+		if (m_conversationHistories.ContainsKey (characterName)) {
+			toReturn = m_conversationHistories[characterName].Count;		
 		}
-		else{
-			UpdateConversationDisplay(characterName,characterColor,dialogue);
+
+		return toReturn;
+	}
+
+
+
+	//Add character dialogue lines through here by characterName and the current dialogue line in that conversation
+	public void AddLine(string characterName, DialogueLine dialogue){
+		if (!m_conversationHistories.ContainsKey (characterName)) { //New conversation
+				m_conversationHistories.Add (characterName, new List<DialogueLine> ());
+
+				AddConversationDisplay (characterName, Color.white, dialogue);
+		} else {
+				UpdateConversationDisplay (characterName, Color.white, dialogue);
 		}
 
 		m_conversationHistories [characterName].Add (dialogue);
 
 		//If ChatHandler is currently up, update it
 		if (ChatHandler.Instance.IsCurrentCharacter (characterName)) {
-			ChatHandler.Instance.UpdateList(dialogue);		
+				ChatHandler.Instance.UpdateList (dialogue);		
 		}
 
-	}
-
-	public void AddLine(Character character, string dialogue){
-		AddLine (character.CharacterName, character.CharacterColor, new DialogueLine (character.CharacterName, character.CharacterColor, dialogue));
 	}
 
 	///////////////
@@ -102,7 +114,7 @@ public class ConversationHandler : DisplayHandler {
 		if (conversationObj != null) {
 			ConversationDisplayUnit displayUnit = conversationObj.GetComponent<ConversationDisplayUnit>();
 
-			displayUnit.SetUpDialogue(characterName,dialogue.LineOfDialogue,characterColor,dialogue.TextColor);
+			displayUnit.SetUpDialogue(characterName,dialogue.LineOfDialogue,characterColor, Color.white);
 			m_conversationDisplays.Add (displayUnit);
 
 			if(m_conversationDisplays.Count>1){
@@ -120,7 +132,7 @@ public class ConversationHandler : DisplayHandler {
 		for(int i = 0; i<m_conversationDisplays.Count; i++){
 			if(m_conversationDisplays[i].IsSameConversation(characterName)){
 
-				m_conversationDisplays[i].SetUpDialogue(characterName, dialogue.LineOfDialogue,characterColor,dialogue.TextColor);
+				m_conversationDisplays[i].SetUpDialogue(characterName, dialogue.LineOfDialogue,characterColor,Color.white);
 			}
 		}
 	}

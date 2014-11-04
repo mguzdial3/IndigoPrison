@@ -15,3 +15,13 @@
 *.dll
 *.obj
 *.pdb
+
+unity/IndigoPrison-csharp.sln
+
+unity/IndigoPrison.sln
+
+unity/Library/assetDatabase3
+
+unity/Library/ScriptAssemblies/Assembly-CSharp.dll
+
+Library/ScriptAssemblies/Assembly-CSharp.dll.mdb

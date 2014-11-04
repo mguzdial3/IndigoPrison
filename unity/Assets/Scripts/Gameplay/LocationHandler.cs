@@ -84,8 +84,6 @@ public class LocationHandler : MonoBehaviour {
 
 
 		if (m_prevLocation != m_location) {
-
-
 			if((m_location-m_prevLocation).magnitude>0.004f){
 				m_prevLocation += (m_location-m_prevLocation).normalized*0.004f;
 			}

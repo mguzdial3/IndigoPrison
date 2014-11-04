@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Indigo;
 
 //Using a singleton structure for these too so that interactions with other displays can affect this one
 public class ChatHandler : DisplayHandler {
@@ -70,7 +71,7 @@ public class ChatHandler : DisplayHandler {
 		if(m_textInput){
 			if(Input.GetKeyUp(KeyCode.S) || Input.GetKey(KeyCode.KeypadEnter) || Input.GetKey(KeyCode.Tab) || Input.GetKey(KeyCode.RightArrow)){
 				m_textInput = false;
-				ConversationHandler.Instance.AddLine(characterName.text,characterName.color,new DialogueLine(m_keyboardInput));
+				ConversationHandler.Instance.AddLine(characterName.text,new DialogueLine(m_keyboardInput));
 				m_keyboardInput="";
 			}
 		}

@@ -31,10 +31,10 @@ public class MapHandler : DisplayHandler {
 	//Check for returning to conversation
 	private bool m_TransferToConversation;
 
-	//TODO; remove for after demo
-	private bool foundGuard = false;
-	private bool refoundPrisoner = false;
-	private bool canRefindPrisoner = false;
+	//Player Pos
+	public Vector2 PlayerPos { get; private set;}
+
+
 
 	public override void Init (){
 		base.Init ();
@@ -71,6 +71,12 @@ public class MapHandler : DisplayHandler {
 
 	///////////
 	/// Indicator Stuff
+	/// 
+	/// 
+
+	public bool HasIndicator(string nameOfIndicator){
+		return m_otherIndicators.ContainsKey (nameOfIndicator);
+	}
 
 	//Called to add an indicator to the map from an int constance, and a vector in prison space
 	public void AddIndicator(string nameOfIndicator, int indicator, Vector2 locationVector){
@@ -135,7 +141,7 @@ public class MapHandler : DisplayHandler {
 		}
 	}
 
-	//Called whent the player's position changes from wherever
+	//Called when the player's position changes from wherever
 	public void UpdateMap(Vector2 playerPos){
 		Vector2 pixelPos = TransferPrisonVectorToMapVector (playerPos);
 
@@ -143,42 +149,13 @@ public class MapHandler : DisplayHandler {
 
 		pixelPos.x *= Screen.width;
 		pixelPos.y *= Screen.height;
+		PlayerPos = pixelPos;
 
 		RemoveFog(pixelPos);
 
 		m_fogOfWar.Apply (false);
 
 		playerIndicator.transform.position = newPos;
-
-		//Check if we're new a new one
-		//TODO; do this in a non demo way
-
-		bool updateDemo = false;
-		foreach (KeyValuePair<string, GUITexture> kvp in m_otherIndicators) {
-			Vector3 pos = kvp.Value.transform.position;
-			pos.z = -9f;
-			Vector3 dist = 	playerIndicator.transform.position-pos;
-
-			if(dist.magnitude<.035f){
-				if(!foundGuard && kvp.Value.gameObject.name.Contains("Guard")){
-					foundGuard=true;
-					updateDemo=true;
-					canRefindPrisoner=true;
-				}
-				else if(kvp.Value.gameObject.name.Contains("Item")){
-					updateDemo=true;
-				}
-				else if(canRefindPrisoner && !refoundPrisoner && kvp.Value.gameObject.name.Contains("Prisoner")){
-					updateDemo=true;
-					refoundPrisoner = true;
-					canRefindPrisoner = false;
-				}
-			}
-		}
-
-		if (updateDemo) {
-			GameplayManager.Instance.UpdateDemo();		
-		}
 
 	}
 

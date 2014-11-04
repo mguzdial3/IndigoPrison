@@ -5,7 +5,7 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{AAC5D607-D466-ED1C-A080-D50D13AF2305}</ProjectGuid>
+	<ProjectGuid>{C3DA89E1-70C6-7D6C-993E-C8F831D35880}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
@@ -46,15 +46,11 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\AI\Character.cs" />
-     <Compile Include="Assets\AI\CharacterManager.cs" />
-     <Compile Include="Assets\AI\DramaManager.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\ChatHandler.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\ConversationHandler.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\DisplayHandler.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\ConstantSpinner.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\ConversationDisplayUnit.cs" />
-     <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\DialogueLine.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\ScaleGUIText.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\ScaleGUITexture.cs" />
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\Helpers\UIButton.cs" />
@@ -62,6 +58,10 @@
      <Compile Include="Assets\Scripts\Gameplay\DisplayHandlers\MapHandler.cs" />
      <Compile Include="Assets\Scripts\Gameplay\GameplayManager.cs" />
      <Compile Include="Assets\Scripts\Gameplay\LocationHandler.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-firstpass-vs.csproj">
+      <Project>{518622B2-9050-A153-E465-3E4BD155181A}</Project>      <Name>Assembly-CSharp-firstpass-vs</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
