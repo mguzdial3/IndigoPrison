@@ -11,8 +11,9 @@ namespace Indigo
     /// <param name="state">The current game state.</param>
     /// <param name="instigator">The primary instigator of the action.</param>
     /// <param name="receiver">The primary receiver of the action.</param>
+    /// <param name="item">The target item for this action.</param>
     /// <returns>The new game state after applying the effects of the action.</returns>
-    public delegate GameState Action(GameState state, Character instigator, Character receiver);
+    public delegate GameState Action(GameState state, Character instigator, Character receiver, Item item);
 
     /// <summary>
     /// A "container" to match actions with preconditions and an intensity, as well as the characters they act on.
@@ -45,6 +46,11 @@ namespace Indigo
         public Character Receiver { get; private set; }
 
         /// <summary>
+        /// The target item in this action.
+        /// </summary>
+        public Item Item { get; private set; }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="action">The action.</param>
@@ -52,13 +58,15 @@ namespace Indigo
         /// <param name="preconditions">The preconditions.</param>
         /// <param name="instigator">The instigator of the action.</param>
         /// <param name="receiver">The receiver for the action.</param>
-        public ActionAggregate(Action action, int intensity, List<ConditionPair> preconditions, Character instigator, Character receiver)
+        /// <param name="item">The target item for this action.</param>
+        public ActionAggregate(Action action, int intensity, List<ConditionPair> preconditions, Character instigator, Character receiver, Item item)
         {
             this.Action = action;
             this.Intensity = intensity;
             this.Preconditions = preconditions;
             this.Instigator = instigator;
             this.Receiver = receiver;
+            this.Item = item;
         }
 
         /// <summary>
@@ -72,7 +80,7 @@ namespace Indigo
             if (!DoPreconditionsHold(state)) {
                 throw new InvalidOperationException("Preconditions for this action are not met!");
             }
-            return this.Action(state, this.Instigator, this.Receiver);
+            return this.Action(state, this.Instigator, this.Receiver, this.Item);
         }
 
         /// <summary>
@@ -102,7 +110,7 @@ namespace Indigo
             var alice = new Character("Alice");
             var bob = new Character("Bob");
             var preconditions = new List<ConditionPair>{ new ConditionPair(ConditionLibrary.IsAlive, alice), new ConditionPair(ConditionLibrary.IsAlive, bob) };
-            var killCharacter = new ActionAggregate(ActionLibrary.KillCharacter, 3, preconditions, alice, bob);
+            var killCharacter = new ActionAggregate(ActionLibrary.KillCharacter, 3, preconditions, alice, bob, null);
             this.AddAction(killCharacter);
         }
 
@@ -133,7 +141,7 @@ namespace Indigo
     public static class ActionLibrary
     {
         // TEMP: Here's an example of an action that kills a character.
-        public static GameState KillCharacter(GameState state, Character instigator, Character receiver)
+        public static GameState KillCharacter(GameState state, Character instigator, Character receiver, Item item)
         {
             GameState newState = state.Clone();
             var killedIndex = newState.Characters.FindIndex(c => c.Name == receiver.Name);

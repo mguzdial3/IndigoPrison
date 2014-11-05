@@ -16,12 +16,15 @@
 *.obj
 *.pdb
 
+# Unity Files
 unity/IndigoPrison-csharp.sln
-
 unity/IndigoPrison.sln
-
 unity/Library/assetDatabase3
-
 unity/Library/ScriptAssemblies/Assembly-CSharp.dll
-
 Library/ScriptAssemblies/Assembly-CSharp.dll.mdb
+*/Library/metadata/
+unity/Temp/
+
+# No Unity, I don't want you to make meta files for my build folders. Go burn in a fire.
+*bin.meta
+*obj.meta

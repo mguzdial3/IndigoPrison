@@ -63,7 +63,7 @@ namespace Indigo{
 					else if(currentGameState.Player.HasItem(charItem) && other.Alive){
 						currentGameState.AddLine(character.Name, new DialogueLine(character.Name,"Haha, now I can kill the "+otherChar));
 						charItem.SetAlive(false);
-						currentGameState = ActionLibrary.KillCharacter(currentGameState,character,other);
+						currentGameState = ActionLibrary.KillCharacter(currentGameState,character,other,null);
 					}
 				}
 			}
