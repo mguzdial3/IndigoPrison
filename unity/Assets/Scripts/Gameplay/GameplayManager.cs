@@ -7,15 +7,14 @@ using Indigo;
 public class GameplayManager : MonoBehaviour {
 	private Dictionary<string, DisplayHandler> m_displays; //Hold all the displays for ease of access
 	public string displayToStartWith;// For Testing
-
-
+	
 	private string m_currDisplay;
 
 	private DramaManager m_dramaManager;
 	private GameState currGameState;
 
-	//TODO; get rid of after demo
 	public static GameplayManager Instance;
+
 
 	void Awake () {
 		//Add all the necessary components
@@ -79,6 +78,7 @@ public class GameplayManager : MonoBehaviour {
 				MapHandler.Instance.AddIndicator(c.Name,characterType,new Vector2(c.X,c.Y));
 			}
 			else if(((c.Alive && c.Hidden) || (!c.Alive)) && MapHandler.Instance.HasIndicator(c.Name)){
+
 				MapHandler.Instance.DestroyIndicator(c.Name);
 			}
 		}

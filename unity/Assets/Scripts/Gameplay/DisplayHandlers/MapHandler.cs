@@ -95,6 +95,7 @@ public class MapHandler : DisplayHandler {
 		if (toUse != null) {
 			GameObject go = Instantiate(toUse) as GameObject;		
 			GUITexture guiTexture = go.GetComponent<GUITexture>();
+			go.name = nameOfIndicator;
 
 			if(guiTexture!=null){
 				Vector3 newPos = GetPositionGivenMapAndTexture(locationVector,guiTexture);

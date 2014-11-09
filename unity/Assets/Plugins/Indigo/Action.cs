@@ -152,7 +152,29 @@ namespace Indigo
                 killed.Alive = false;
                 newState.Characters[killedIndex] = killed;
             }
+			item.SetAlive (false);
+			newState.AddLine(instigator.Name, new DialogueLine(instigator.Name,"Haha, now I can kill the "+receiver.Name));
+
             return newState;
         }
+
+		//Introduces a character by dehiding them, and adding their initial item quest to the world state
+		public static GameState IntroduceCharacterQuest(GameState state, Character instigator, Character receiver, Item item){
+			GameState newState = state.Clone();
+			Location loc = DramaManager.Instance
+				.GetNewItemLocation (state,instigator);
+
+			var instigatorIndex = newState.Characters.FindIndex(c => c.Name == instigator.Name);
+
+			newState.Characters[instigatorIndex].Hidden = false;
+
+			Item guardItem = new Item (instigator.Name + "Item", loc.X, loc.Y);
+			newState.AddItem (guardItem);
+			guardItem.SetHidden (false);
+
+			newState.AddLine (instigator.Name,new DialogueLine(instigator.Name, "Hey get this!"));
+
+			return newState;
+		}
     }
 }

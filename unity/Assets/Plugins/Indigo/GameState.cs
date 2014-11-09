@@ -120,5 +120,12 @@ namespace Indigo
             newState.Intensity = this.Intensity;
             return newState;
         }
+
+
     }
+
+	public struct Location{
+		public float X;
+		public float Y;
+	}
 }
