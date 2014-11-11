@@ -17,11 +17,10 @@
 *.pdb
 
 # Unity Files
-unity/IndigoPrison-csharp.sln
+# Don't ever commit anything in Library. metadata will ruin your day.
+unity/Library/
 unity/IndigoPrison.sln
-unity/Library/assetDatabase3
-unity/Library/ScriptAssemblies/Assembly-CSharp.dll
-Library/ScriptAssemblies/Assembly-CSharp.dll.mdb
+unity/IndigoPrison-csharp.sln
 */Library/metadata/
 unity/Temp/
 
