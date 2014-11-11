@@ -90,7 +90,7 @@ namespace Indigo
         /// <returns>True if none of the preconditions are violated, false otherwise.</returns>
         public bool DoPreconditionsHold(GameState state)
         {
-            return this.Preconditions.Aggregate(true, (value, pc) => value & pc.Condition(state, pc.Target));
+            return this.Preconditions.Aggregate(true, (value, pc) => value & pc.Condition(state, pc.Target, pc.Item));
         }
     }
 
@@ -109,7 +109,7 @@ namespace Indigo
             // THIS SHOULD OBVIOUSLY NOT BE DONE IN THE CONSTRUCTOR. SERIOUSLY.
             var alice = new Character("Alice");
             var bob = new Character("Bob");
-            var preconditions = new List<ConditionPair>{ new ConditionPair(ConditionLibrary.IsAlive, alice), new ConditionPair(ConditionLibrary.IsAlive, bob) };
+            var preconditions = new List<ConditionPair>{ new ConditionPair(ConditionLibrary.IsAlive, alice, null), new ConditionPair(ConditionLibrary.IsAlive, bob, null) };
             var killCharacter = new ActionAggregate(ActionLibrary.KillCharacter, 3, preconditions, alice, bob, null);
             this.AddAction(killCharacter);
         }
@@ -154,6 +154,45 @@ namespace Indigo
             }
 			item.SetAlive (false);
 			newState.AddLine(instigator.Name, new DialogueLine(instigator.Name,"Haha, now I can kill the "+receiver.Name));
+
+            return newState;
+        }
+
+        // One character insults another, lowering the second's trust and like for the first.
+        public static GameState Insult(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+
+            var jerk = newState.Characters.Find(c => c.Name == instigator.Name);
+            var insultee = newState.Characters.Find(c => c.Name == receiver.Name);
+
+            if (jerk != null && insultee != null) {
+                // HACK (kasiu): SOMEONE THINK OF A BETTER INSULT TO PUT HERE.
+                newState.AddLine(jerk.Name, new DialogueLine(jerk.Name, "You know " + insultee.Name + ", you're an asshole."));
+                newState.AddLine(insultee.Name, new DialogueLine(insultee.Name, "What? You try saying that again!"));
+                var oldFeelings = insultee.GetRelationship(jerk.Name);
+                var newFeelings = new feelingsAboutChar();
+                // Lowers trust and like by -1
+                newFeelings.Trust = Math.Max(oldFeelings.Trust - 1, -2);
+                newFeelings.Like = Math.Max(oldFeelings.Like - 1, -2);
+                insultee.ChangeRelationship(jerk.Name, newFeelings);
+            }
+            
+            return newState;
+        }
+
+        // Steals an item from another character. One of the preconditions should be that the receiver has the item.
+        public static GameState StealItem(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+            var thief = newState.Characters.Find(c => c.Name == instigator.Name);
+            var victim = newState.Characters.Find(c => c.Name == receiver.Name);
+
+            // Nothing should happen if for some reason the game state is mucked up.
+            if (thief != null && victim != null && victim.HasItem(item)) {
+                victim.Items.Remove(item);
+                thief.Items.Add(item);
+                newState.AddLine(thief.Name, new DialogueLine(thief.Name, "Success! This " + item.Name + " is mine!"));
+                newState.AddLine(victim.Name, new DialogueLine(receiver.Name, "Wait...where did the " + item.Name + " go?"));
+            }
 
             return newState;
         }

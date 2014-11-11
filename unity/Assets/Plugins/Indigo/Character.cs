@@ -82,6 +82,10 @@ namespace Indigo
 			}
 		}
 
+        public feelingsAboutChar GetRelationship(string characterName) {
+            return this.Relationships[characterName];
+        }
+
 		//ITEM STUFF
 		public bool HasItem(Item item){
 			return Items.Contains (item);
@@ -97,7 +101,7 @@ namespace Indigo
 	/// </summary>
 	public struct feelingsAboutChar 
 	{
-		int Trust {set; get;} // -2 = never believe, +2 = always believe
-		int Like {set; get;} // -2 = hate, +2 = adore
+		public int Trust {set; get;} // -2 = never believe, +2 = always believe
+		public int Like {set; get;} // -2 = hate, +2 = adore
 	}
 }
