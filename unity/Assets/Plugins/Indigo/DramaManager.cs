@@ -53,15 +53,15 @@ namespace Indigo{
 
 			//Characters
 			foreach (Character character in currentGameState.Characters) {
-				if(character.Alive && GetDist(character,currentGameState.Player)<MIN_REVEAL){
+				if(character.IsAlive() && GetDist(character,currentGameState.Player)<MIN_REVEAL){
 					string otherChar = character.Name.Equals(GUARD_TITLE) ? PRISONER_TITLE: GUARD_TITLE;
 					Character other = currentGameState.GetCharacter(otherChar);
 					Item charItem = currentGameState.GetItem(character.Name+"Item"); //TODO; better way to do this, probs based on what's in that characters needed inventory or conditions or something
 
-					if(character.Hidden && character.Alive){
+					if(character.Hidden && character.IsAlive()){
 						currentGameState = ActionLibrary.IntroduceCharacterQuest (currentGameState, character, null, null);
 					}
-					else if(charItem!=null && currentGameState.Player.HasItem(charItem) && other.Alive && character.Alive && GetDist(character,currentGameState.Player)<MIN_DIST){
+					else if(charItem!=null && currentGameState.Player.HasItem(charItem) && other.IsAlive() && character.IsAlive() && GetDist(character,currentGameState.Player)<MIN_DIST){
 						currentGameState = ActionLibrary.KillCharacter(currentGameState,character,other,charItem);
 					}
 				}

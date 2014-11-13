@@ -126,7 +126,7 @@ namespace Indigo
             if (killedIndex >= 0 && killedIndex < newState.Characters.Count()) {
                 var killed = newState.Characters[killedIndex];
                 // KILL IT (and overwrite the old character)
-                killed.Alive = false;
+                killed.RemoveStatus("Alive");
                 newState.Characters[killedIndex] = killed;
             }
 			item.SetAlive (false);

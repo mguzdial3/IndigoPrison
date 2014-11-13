@@ -5,14 +5,20 @@ using System.Text;
 
 namespace Indigo
 {
-
     public class Character
     {
+        /// <summary>
+        /// A list of statuses a character may have.
+        /// </summary>
+        public List<string> CHARACTER_STATUSES = new List<string> { "Alive", "Mobile" };
+
 		// Smarterish properties.
 		public string Name { get; private set; }
-		public bool Alive { get; set; }
 		public bool Hidden { get; set; }
 		//public List<Attribute> attributes; // TODO emotions, trust, etc
+
+        public List<string> Statuses { get; private set; }
+
 		public List<Condition> Goal {get; set;} 
 		//Location; 
 		public float X{ get; private set; }
@@ -27,11 +33,11 @@ namespace Indigo
         public Character(string name) 
         {
             this.Name = name;
-            this.Alive = true;
 			this.Hidden = false;
 			this.Relationships = new Dictionary<string, feelingsAboutChar>();
 			this.Goal = new List<Condition> ();
 			this.Items = new List<Item> ();
+            this.Statuses = new List<string>();
         }
 
 		public Character(string name, float x, float y): this(name){
@@ -41,7 +47,6 @@ namespace Indigo
 
         public Character Clone(){
 			Character clone = new Character (Name, X, Y);
-			clone.Alive = Alive;
 			clone.Hidden = Hidden;
 			foreach (Condition condition in Goal) {
 				clone.Goal.Add(condition);			
@@ -57,6 +62,10 @@ namespace Indigo
 				clone.Items.Add(item.Clone());			
 			}
 
+            foreach (var status in this.Statuses) {
+                clone.AddStatus(status);
+            }
+
 			return clone;
 		}
 
@@ -71,7 +80,52 @@ namespace Indigo
 			Y = y;
 		}
 
-		//RELATIONSHIP STUFF
+        #region STATUS STUFF
+        /// <summary>
+        /// Adds a new status to the character.
+        /// </summary>
+        /// <param name="statusName">The name of a status (e.g. "Alive").</param>
+        /// <returns>True, if the status was a valid status and added to the character, false otherwise.</returns>
+        public bool AddStatus(string statusName) {
+            if (CHARACTER_STATUSES.Contains(statusName) && !this.Statuses.Contains(statusName)) {
+                this.Statuses.Add(statusName);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the character has a particular status.
+        /// </summary>
+        /// <param name="statusName">The name of a status (e.g. "Alive").</param>
+        /// <returns>True, if the character has this status, false otherwise.</returns>
+        public bool HasStatus(string statusName) {
+            return this.Statuses.Contains(statusName);
+        }
+
+        /// <summary>
+        /// Removes a status from a character.
+        /// </summary>
+        /// <param name="statusName">The name of a status (e.g. "Alive").</param>
+        /// <returns>True, if the characrer has this status and it is removed successfully, false otherwise.</returns>
+        public bool RemoveStatus(string statusName) {
+            if (CHARACTER_STATUSES.Contains(statusName)) {
+                // List.Remove should handle the contains check.
+                return this.Statuses.Remove(statusName);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// A shorthand function for checking aliveness/deadness.
+        /// </summary>
+        /// <returns>True, if the character has the "Alive" status, false otherwise.</returns>
+        public bool IsAlive() {
+            return this.HasStatus("Alive");
+        }
+        #endregion
+
+        //RELATIONSHIP STUFF
 		public void AddRelationship(string characterName, feelingsAboutChar feeling){
 			Relationships.Add (characterName, feeling);
 		}
@@ -90,10 +144,6 @@ namespace Indigo
 		public bool HasItem(Item item){
 			return Items.Contains (item);
 		}
-
-		 
-
-
     }
 	
 	/// <summary>

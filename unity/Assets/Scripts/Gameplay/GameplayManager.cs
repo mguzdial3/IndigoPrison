@@ -72,12 +72,12 @@ public class GameplayManager : MonoBehaviour {
 
 		//CHARACTER DISPLAYS
 		foreach (Character c in currGameState.Characters) {
-			if(c.Alive && !c.Hidden && !MapHandler.Instance.HasIndicator(c.Name)){
+			if(c.IsAlive() && !c.Hidden && !MapHandler.Instance.HasIndicator(c.Name)){
 				int characterType = c.Name.Contains(DramaManager.GUARD_TITLE) ? MapHandler.GUARD_ICON: MapHandler.PRISONER_ICON;
 
 				MapHandler.Instance.AddIndicator(c.Name,characterType,new Vector2(c.X,c.Y));
 			}
-			else if(((c.Alive && c.Hidden) || (!c.Alive)) && MapHandler.Instance.HasIndicator(c.Name)){
+			else if(((c.IsAlive() && c.Hidden) || (!c.IsAlive())) && MapHandler.Instance.HasIndicator(c.Name)){
 
 				MapHandler.Instance.DestroyIndicator(c.Name);
 			}
