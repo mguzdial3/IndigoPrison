@@ -18,11 +18,14 @@
 
 # Unity Files
 # Don't ever commit anything in Library. metadata will ruin your day.
+# Most of these files get regenerated on opening scripts, so there's no reason to repo them.
 unity/Library/
 unity/IndigoPrison.sln
 unity/IndigoPrison-csharp.sln
-*/Library/metadata/
 unity/Temp/
+unity/Assembly*.csproj
+unity/unity-csharp.sln
+unity/unity.sln
 
 # No Unity, I don't want you to make meta files for my build folders. Go burn in a fire.
 *bin.meta
