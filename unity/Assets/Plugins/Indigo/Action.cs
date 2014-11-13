@@ -33,22 +33,7 @@ namespace Indigo
         /// <summary>
         /// The preconditions.
         /// </summary>
-        public List<ConditionPair> Preconditions { get; private set; }
-
-        /// <summary>
-        /// The primary character instigating the action.
-        /// </summary>
-        public Character Instigator { get; private set; }
-
-        /// <summary>
-        /// The character at the receiving end of the action.
-        /// </summary>
-        public Character Receiver { get; private set; }
-
-        /// <summary>
-        /// The target item in this action.
-        /// </summary>
-        public Item Item { get; private set; }
+        public List<Condition> Preconditions { get; private set; }
 
         /// <summary>
         /// Constructor.
@@ -56,17 +41,11 @@ namespace Indigo
         /// <param name="action">The action.</param>
         /// <param name="intensity">The intensity.</param>
         /// <param name="preconditions">The preconditions.</param>
-        /// <param name="instigator">The instigator of the action.</param>
-        /// <param name="receiver">The receiver for the action.</param>
-        /// <param name="item">The target item for this action.</param>
-        public ActionAggregate(Action action, int intensity, List<ConditionPair> preconditions, Character instigator, Character receiver, Item item)
+        public ActionAggregate(Action action, int intensity, List<Condition> preconditions)
         {
             this.Action = action;
             this.Intensity = intensity;
             this.Preconditions = preconditions;
-            this.Instigator = instigator;
-            this.Receiver = receiver;
-            this.Item = item;
         }
 
         /// <summary>
@@ -75,12 +54,12 @@ namespace Indigo
         /// <param name="state"></param>
         /// <exception cref="InvalidOperationException">Throws if preconditions are violated.</exception>
         /// <returns></returns>
-        public GameState EvaluateAction(GameState state)
+        public GameState EvaluateAction(GameState state, Character instigator, Character receiver, Item item)
         {
-            if (!DoPreconditionsHold(state)) {
+            if (!DoPreconditionsHold(state, instigator, receiver, item)) {
                 throw new InvalidOperationException("Preconditions for this action are not met!");
             }
-            return this.Action(state, this.Instigator, this.Receiver, this.Item);
+            return this.Action(state, instigator, receiver, item);
         }
 
         /// <summary>
@@ -88,9 +67,9 @@ namespace Indigo
         /// </summary>
         /// <param name="state">The current game state.</param>
         /// <returns>True if none of the preconditions are violated, false otherwise.</returns>
-        public bool DoPreconditionsHold(GameState state)
+        public bool DoPreconditionsHold(GameState state, Character instigator, Character receiver, Item item)
         {
-            return this.Preconditions.Aggregate(true, (value, pc) => value & pc.Condition(state, pc.Target, pc.Item));
+            return this.Preconditions.Aggregate(true, (value, pc) => value & pc(state, instigator, receiver, item));
         }
     }
 
@@ -107,10 +86,8 @@ namespace Indigo
             
             // TEMP: Here's an example of how one might add an action to the manager for a pair of characters.
             // THIS SHOULD OBVIOUSLY NOT BE DONE IN THE CONSTRUCTOR. SERIOUSLY.
-            var alice = new Character("Alice");
-            var bob = new Character("Bob");
-            var preconditions = new List<ConditionPair>{ new ConditionPair(ConditionLibrary.IsAlive, alice, null), new ConditionPair(ConditionLibrary.IsAlive, bob, null) };
-            var killCharacter = new ActionAggregate(ActionLibrary.KillCharacter, 3, preconditions, alice, bob, null);
+            var preconditions = new List<Condition>{ ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive };
+            var killCharacter = new ActionAggregate(ActionLibrary.KillCharacter, 3, preconditions);
             this.AddAction(killCharacter);
         }
 
@@ -176,7 +153,7 @@ namespace Indigo
                 newFeelings.Like = Math.Max(oldFeelings.Like - 1, -2);
                 insultee.ChangeRelationship(jerk.Name, newFeelings);
             }
-            
+
             return newState;
         }
 
@@ -194,6 +171,21 @@ namespace Indigo
                 newState.AddLine(victim.Name, new DialogueLine(receiver.Name, "Wait...where did the " + item.Name + " go?"));
             }
 
+            return newState;
+        }
+
+        // We assume the instigator is the one hiding? Maybe I have hiding all wrong.
+        public static GameState HideCharacter(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+            var hiddenIndex = newState.Characters.FindIndex(c => c.Name == instigator.Name);
+            // If the character exists...
+            if (hiddenIndex >= 0 && hiddenIndex < newState.Characters.Count()) {
+                var hidden = newState.Characters[hiddenIndex];
+                hidden.Hidden = false;
+                newState.Characters[hiddenIndex] = hidden;
+            }
+            item.SetAlive(false);
+            newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "No one will find me now!"));
             return newState;
         }
 
