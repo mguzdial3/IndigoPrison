@@ -71,7 +71,7 @@ namespace Indigo
         {
             return this.Preconditions.Aggregate(true, (value, pc) => value & pc(state, instigator, receiver, item));
         }
-    }
+    } // END ActionAggregate
 
     /// <summary>
     /// A container which stores all possible actions and provides access to them.

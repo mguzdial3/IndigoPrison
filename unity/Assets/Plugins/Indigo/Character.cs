@@ -145,32 +145,43 @@ namespace Indigo
       return Items.Contains (item);
     }
 
-    // Score the results of an action against the 
+    // ACTION STUFF
+
+
+    /// <summary>
+    /// Score the results of an action against the goal preconditions, counting the size of the overlap; no normalization needed
+    /// </summary>
     private int scoreForGoals (GameState actionResult){
-      
-      
+      return Goal.Intersect(actionResult.conditionDescription).Count; // xxx TODO conditionDescription
     }
 
-    // ACTION STUFF
-    public ActionAggregate chooseNextAction (List <ActionAggregate> actions, GameState currentState) {
-      ActionAggregate bestAction = null;
-      int bestActionScore = 0;
-      // Instantiate actions
-      // test preconditions should catch all illegal actions
-      // assume all actions are possible, just check if they are desirable
+    /// <summary>
+    /// Return the state after evaluating the preferred action given the character's goals. 
+    /// </summary>
+    /// <param name="actions"> List of action aggregates that may be possible right now given the intensity </param>
+    /// <param name="currentState"> Current world state </param>
+    /// <returns> The GameState after evaluating the best action, or the current gamestate if waiting is best </returns>
+    public GameState evaluateBestAction (List <ActionAggregate> actions, GameState currentState) { // return a gamestate? 
+      GameState bestAction = currentState;
+      int bestActionScore = scoreForGoals(currentState);
 
       foreach (ActionAggregate act in actions){
-	foreach (Character person in possibleRecipients){
-	  ActionAggregate thisAction = new ActionAggregate(); // xxx
-	    int score = scoreForGoals(act); // xxx 
-	    if (score > bestActionScore){
-	      bestAction = act;
-	      bestActionScore = score;
-	  }
-	}
-      }
+	foreach (Character person in currentState.Characters){
+	  foreach (Item itm in this.Items) {
+	    try {
+	      int score = scoreForGoals(act.EvaluateAction(currentState, this, person, itm));
+	      if (score > bestActionScore) {
+		bestAction = act.Action;
+		bestActionScore = score; 
+	      }
+	    } catch (InvalidOperationException e) { 
+	      // do nothing; preconditions failed
+	    }
+	  } // items
+	} // characters
+      } // actions
       return bestAction;
-    } // END chooseNextAction
+    } // END chooseBestAction
 
   } // END Character
 	
