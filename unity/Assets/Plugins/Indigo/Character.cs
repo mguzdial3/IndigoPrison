@@ -19,7 +19,7 @@ namespace Indigo
 
     public List<string> Statuses { get; private set; }
 
-    public List<Condition> Goal {get; set;} 
+    public List<CharacterGoal> Goals {get; set;} 
     //Location; 
     public float X{ get; private set; }
     public float Y{ get; private set; }
@@ -35,7 +35,7 @@ namespace Indigo
       this.Name = name;
       this.Hidden = false;
       this.Relationships = new Dictionary<string, feelingsAboutChar>();
-      this.Goal = new List<Condition> ();
+      this.Goals = new List<CharacterGoal>();
       this.Items = new List<Item> ();
       this.Statuses = new List<string>();
     }
@@ -48,8 +48,8 @@ namespace Indigo
     public Character Clone(){
       Character clone = new Character (Name, X, Y);
       clone.Hidden = Hidden;
-      foreach (Condition condition in Goal) {
-	clone.Goal.Add(condition);			
+      foreach (CharacterGoal goal in Goals) {
+        clone.Goals.Add(goal);			
       }
 
       clone.SetAction (nextAction);
@@ -152,7 +152,7 @@ namespace Indigo
     /// Score the results of an action against the goal preconditions, counting the size of the overlap; no normalization needed
     /// </summary>
     private int scoreForGoals (GameState actionResult, Character recipient, Item itm){
-      return this.Goal.Aggregate(0, (score, gc) => score + (gc(actionResult, this, recipient, itm) ? 1 : 0)); // xxx doesn't really make sense with the current condition implementation
+      return this.Goals.Aggregate(0, (score, gc) => score + (gc.IsGoalSatisfied(actionResult) ? 1 : 0)); // xxx doesn't really make sense with the current condition implementation
     }
 
     /// <summary>
