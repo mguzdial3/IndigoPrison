@@ -151,8 +151,8 @@ namespace Indigo
     /// <summary>
     /// Score the results of an action against the goal preconditions, counting the size of the overlap; no normalization needed
     /// </summary>
-    private int scoreForGoals (GameState actionResult){
-      return Goal.Intersect(actionResult.conditionDescription).Count; // xxx TODO conditionDescription
+    private int scoreForGoals (GameState actionResult, Character recipient, Item itm){
+      return this.Goal.Aggregate(0, (score, gc) => score + (gc(actionResult, this, recipient, itm))? 1 : 0); // xxx doesn't really make sense with the current condition implementation
     }
 
     /// <summary>
@@ -161,28 +161,29 @@ namespace Indigo
     /// <param name="actions"> List of action aggregates that may be possible right now given the intensity </param>
     /// <param name="currentState"> Current world state </param>
     /// <returns> The GameState after evaluating the best action, or the current gamestate if waiting is best </returns>
-    public GameState evaluateBestAction (List <ActionAggregate> actions, GameState currentState) { // return a gamestate? 
-      GameState bestAction = currentState;
-      int bestActionScore = scoreForGoals(currentState);
-
+    public GameState evaluateBestAction (List <ActionAggregate> actions, GameState currentState) {  
+      GameState bestActionState = currentState;
+      int bestActionScore = scoreForGoals(currentState, null, null); // xxx state design doesn't seem to support this well
       foreach (ActionAggregate act in actions){
 	foreach (Character person in currentState.Characters){
 	  foreach (Item itm in this.Items) {
 	    try {
-	      int score = scoreForGoals(act.EvaluateAction(currentState, this, person, itm));
+	      GameState actionState = act.EvaluateAction(currentState, this, person, itm);
+	      int score = scoreForGoals(actionState,
+					person,
+					itm);
 	      if (score > bestActionScore) {
-		bestAction = act.Action;
+		bestActionState = actionState;
 		bestActionScore = score; 
 	      }
 	    } catch (InvalidOperationException e) { 
 	      // do nothing; preconditions failed
-	    }
+	    } // catch
 	  } // items
 	} // characters
       } // actions
-      return bestAction;
+      return bestActionState;
     } // END chooseBestAction
-
   } // END Character
 	
   /// <summary>
