@@ -152,7 +152,7 @@ namespace Indigo
     /// Score the results of an action against the goal preconditions, counting the size of the overlap; no normalization needed
     /// </summary>
     private int scoreForGoals (GameState actionResult, Character recipient, Item itm){
-      return this.Goal.Aggregate(0, (score, gc) => score + (gc(actionResult, this, recipient, itm))? 1 : 0); // xxx doesn't really make sense with the current condition implementation
+      return this.Goal.Aggregate(0, (score, gc) => score + (gc(actionResult, this, recipient, itm) ? 1 : 0)); // xxx doesn't really make sense with the current condition implementation
     }
 
     /// <summary>
