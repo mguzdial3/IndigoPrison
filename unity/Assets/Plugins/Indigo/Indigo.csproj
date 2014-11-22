@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Action.cs" />
+    <Compile Include="ActionLibrary.cs" />
     <Compile Include="Character.cs" />
     <Compile Include="Conditions.cs" />
     <Compile Include="DialogueLine.cs" />
