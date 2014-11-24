@@ -29,6 +29,23 @@ namespace Indigo
             return newState;
         }
 
+        // One character locks up another character.
+        public static GameState LockUpCharacter(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+
+            // May not be an actual guard, but this needed a variable name that wasn't "lockerUpper"
+            var guard = newState.GetCharacter(instigator.Name);
+            var prisoner = newState.GetCharacter(receiver.Name);
+
+            if (guard != null && prisoner != null) {
+                prisoner.RemoveStatus("Mobile");
+                // TODO (kasiu): Add some lines?
+                newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "Stay locked up in there!"));
+            }
+
+            return newState;
+        }
+
         // One character insults another, lowering the second's trust and like for the first.
         public static GameState Insult(GameState state, Character instigator, Character receiver, Item item) {
             GameState newState = state.Clone();

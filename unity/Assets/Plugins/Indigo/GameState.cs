@@ -81,14 +81,7 @@ namespace Indigo
     }
 
     public Character GetCharacter(string characterName){
-      Character toReturn = null;
-			
-      foreach (Character character in Characters) {
-	if(character.Name.Equals(characterName)){
-	  toReturn = character;
-	}
-      }
-      return toReturn;
+        return Characters.Find(c => c.Name == characterName);
     }
 
     /// <summary>

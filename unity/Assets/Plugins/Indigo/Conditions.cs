@@ -77,28 +77,73 @@ namespace Indigo
     /// </summary>
     public static class ConditionLibrary
     {
+        #region ALIVE-DEAD CONDITIONS
+        // NOTE (kasiu): The following four functions use the "IsAlive" method found in Character.cs.
+        //               This is a shorthand method due to the fact that we check the "alive" status in 
+        //               other modules, but is not something we should do for other character stasuses.
+        //               For conditions that rely on other attributes or statuses, please us "HasStatus"
+        //               with the appropriate string instead.
+
         /// <summary>
         /// Returns whether or not the instigating character is alive.
         /// Makes use of optional parameters on the condition.
         /// </summary>
-        public static bool IsInstigatorAlive(GameState state, Character instigator, Character receiver = null, Item item = null)
-        {
-            return state.Characters.Find(c => c.Name == instigator.Name).HasStatus("Alive");
+        public static bool IsInstigatorAlive(GameState state, Character instigator, Character receiver = null, Item item = null) {
+            var character = state.GetCharacter(instigator.Name);
+            return (character != null) ? character.IsAlive() : false;
         }
 
         /// <summary>
         /// Returns whether or not the receiving character is alive.
         /// Makes use of optional parameters on the condition.
         /// </summary>
-        public static bool IsReceiverAlive(GameState state, Character instigator, Character receiver = null, Item item = null) {
-            return state.Characters.Find(c => c.Name == receiver.Name).HasStatus("Alive");
+        public static bool IsReceiverAlive(GameState state, Character instigator, Character receiver, Item item = null) {
+            var character = state.GetCharacter(receiver.Name);
+            return(character != null) ? character.IsAlive() : false;
         }
 
         /// <summary>
+        /// Returns whether or not the instigating character is dead.
+        /// Makes use of optional parameters on the condition.
+        /// </summary>
+        public static bool IsInstigatorDead(GameState state, Character instigator, Character receiver = null, Item item = null) {
+            var character = state.GetCharacter(instigator.Name);
+            return (character != null) ? !character.IsAlive() : false;
+        }
+
+        /// <summary>
+        /// Returns whether or not the receiving character is dead.
+        /// Makes use of optional parameters on the condition.
+        /// </summary>
+        public static bool IsReceiverDead(GameState state, Character instigator, Character receiver, Item item = null) {
+            var character = state.GetCharacter(receiver.Name);
+            return (character != null) ? !character.IsAlive() : false;
+        }
+        #endregion
+
+        /// <summary>
+        /// Returns whether or not the instigating character has a "mobile" status (i.e. can move).
+        /// Makes use of optional parameters on the condition.
+        /// </summary>
+        public static bool IsInstigatorMobile(GameState state, Character instigator, Character receiver = null, Item item = null) {
+            var character = state.GetCharacter(instigator.Name);
+            return (character != null) ? character.HasStatus("Mobile") : false;
+        }
+
+        /// <summary>
+        /// Returns whether or not the receiving character has a "mobile" status (i.e. can move).
+        /// Makes use of optional parameters on the condition.
+        /// </summary>
+        public static bool IsReceiverMobile(GameState state, Character instigator, Character receiver, Item item = null) {
+            var character = state.GetCharacter(receiver.Name);
+            return (character != null) ? character.HasStatus("Mobile") : false;
+        }
+
+        #region ITEM CONDITIONS
+        /// <summary>
         /// Returns whether or not the instigating character has a particular item.
         /// </summary>
-        public static bool DoesInstigatorHaveItem(GameState state, Character instigator, Character receiver, Item item)
-        {
+        public static bool DoesInstigatorHaveItem(GameState state, Character instigator, Character receiver, Item item) {
             return state.Characters.Find(c => c.Name == instigator.Name).Items.Contains(item);
         }
 
@@ -108,5 +153,6 @@ namespace Indigo
         public static bool DoesReceiverHaveItem(GameState state, Character instigator, Character receiver, Item item) {
             return state.Characters.Find(c => c.Name == receiver.Name).Items.Contains(item);
         }
+        #endregion
     }
 }
