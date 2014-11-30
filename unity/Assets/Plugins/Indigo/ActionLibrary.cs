@@ -12,8 +12,7 @@ namespace Indigo
     public static class ActionLibrary
     {
         // TEMP: Here's an example of an action that kills a character.
-        public static GameState KillCharacter(GameState state, Character instigator, Character receiver, Item item)
-        {
+        public static GameState KillCharacter(GameState state, Character instigator, Character receiver, Item item) {
             GameState newState = state.Clone();
             var killedIndex = newState.Characters.FindIndex(c => c.Name == receiver.Name);
             // If the character exists...
@@ -26,6 +25,13 @@ namespace Indigo
 			item.SetAlive (false);
 			newState.AddLine(instigator.Name, new DialogueLine(instigator.Name,"Haha, now I can kill the "+receiver.Name));
 
+            return newState;
+        }
+
+        // One character waits.
+        public static GameState Wait(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+            newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "I guess I can do nothing but wait."));
             return newState;
         }
 

@@ -10,7 +10,7 @@ namespace Indigo
     /// <summary>
     /// A list of statuses a character may have.
     /// </summary>
-    public List<string> CHARACTER_STATUSES = new List<string> { "Alive", "Mobile" };
+    public static List<string> CHARACTER_STATUSES = new List<string> { "Alive", "Mobile" };
 
     // Smarterish properties.
     public string Name { get; private set; }
@@ -80,18 +80,18 @@ namespace Indigo
       Y = y;
     }
 
-#region STATUS STUFF
+    #region STATUS STUFF
     /// <summary>
     /// Adds a new status to the character.
     /// </summary>
     /// <param name="statusName">The name of a status (e.g. "Alive").</param>
     /// <returns>True, if the status was a valid status and added to the character, false otherwise.</returns>
     public bool AddStatus(string statusName) {
-      if (CHARACTER_STATUSES.Contains(statusName) && !this.Statuses.Contains(statusName)) {
-	this.Statuses.Add(statusName);
-	return true;
-      }
-      return false;
+        if (CHARACTER_STATUSES.Contains(statusName) && !this.Statuses.Contains(statusName)) {
+            this.Statuses.Add(statusName);
+	        return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ namespace Indigo
     /// <param name="statusName">The name of a status (e.g. "Alive").</param>
     /// <returns>True, if the character has this status, false otherwise.</returns>
     public bool HasStatus(string statusName) {
-      return this.Statuses.Contains(statusName);
+        return this.Statuses.Contains(statusName);
     }
 
     /// <summary>
@@ -109,11 +109,11 @@ namespace Indigo
     /// <param name="statusName">The name of a status (e.g. "Alive").</param>
     /// <returns>True, if the characrer has this status and it is removed successfully, false otherwise.</returns>
     public bool RemoveStatus(string statusName) {
-      if (CHARACTER_STATUSES.Contains(statusName)) {
-	// List.Remove should handle the contains check.
-	return this.Statuses.Remove(statusName);
-      }
-      return false;
+        if (CHARACTER_STATUSES.Contains(statusName)) {
+            // List.Remove should handle the contains check.
+            return this.Statuses.Remove(statusName);
+        }
+        return false;
     }
 
     /// <summary>
@@ -121,9 +121,9 @@ namespace Indigo
     /// </summary>
     /// <returns>True, if the character has the "Alive" status, false otherwise.</returns>
     public bool IsAlive() {
-      return this.HasStatus("Alive");
+        return this.HasStatus("Alive");
     }
-#endregion
+    #endregion
 
     //RELATIONSHIP STUFF
     public void AddRelationship(string characterName, feelingsAboutChar feeling){
