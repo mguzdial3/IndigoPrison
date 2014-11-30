@@ -91,6 +91,54 @@ namespace Indigo
             return newState;
         }
 
+        // The instigating character frees him/her/itself with a liberating item.
+        public static GameState FreeCharacterWithItem(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+            var liberated = newState.GetCharacter(instigator.Name);
+
+            if (liberated != null && liberated.HasItem(item)) {
+                liberated.Items.Remove(item);
+                newState.AddLine(liberated.Name, new DialogueLine(liberated.Name, "I'm free, no thanks to this " + item.Name + "!"));
+            }
+
+            return newState;
+        }
+
+        /// <summary>
+        /// The instigating character finds the item lying around the environment.
+        /// </summary>
+        public static GameState FindItem(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+            var finder = newState.GetCharacter(instigator.Name);
+
+            if (finder != null && newState.Items.Contains(item)) {
+                newState.Items.Remove(item);
+                finder.Items.Add(item);
+                newState.AddLine(finder.Name, new DialogueLine(finder.Name, "Well look here! I found a " + item.Name));
+            }
+
+            return newState;
+        }
+
+        /// <summary>
+        /// The instgating character gives the receiving character an item.
+        /// </summary>
+        public static GameState GiveCharacterItem(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+            var giver = newState.GetCharacter(instigator.Name);
+            var given = newState.GetCharacter(receiver.Name);
+
+            // Obligatory null checks.
+            if (giver != null && given != null && giver.HasItem(item)) {
+                giver.Items.Remove(item);
+                given.Items.Add(item);
+                newState.AddLine(giver.Name, new DialogueLine(giver.Name, "Here you go."));
+                newState.AddLine(given.Name, new DialogueLine(receiver.Name, "Hey thanks for the " + item.Name + "."));
+            }
+
+            return newState;
+        }
+
         // We assume the instigator is the one hiding? Maybe I have hiding all wrong.
         public static GameState HideCharacter(GameState state, Character instigator, Character receiver, Item item) {
             GameState newState = state.Clone();
