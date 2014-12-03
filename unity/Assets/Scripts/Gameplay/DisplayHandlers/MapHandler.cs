@@ -24,7 +24,7 @@ public class MapHandler : DisplayHandler {
 	private Texture2D m_fogOfWar;
 	private Color m_fogOfWarColor = Color.black;
 
-	private const float MAP_SCALE = 8000f; //Scale for shifting changes in longitude/latitude to map points
+	private const float MAP_SCALE = 1f;//10000f; //Scale for shifting changes in longitude/latitude to map points
 	private readonly Vector2 PLAYER_SIZE = new Vector2 (30, 30);
 	private readonly Vector2 EXTRA_BUFFER = new Vector2(30,30);
 
@@ -33,8 +33,6 @@ public class MapHandler : DisplayHandler {
 
 	//Player Pos
 	public Vector2 PlayerPos { get; private set;}
-
-
 
 	public override void Init (){
 		base.Init ();

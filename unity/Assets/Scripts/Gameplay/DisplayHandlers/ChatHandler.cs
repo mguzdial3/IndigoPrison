@@ -84,7 +84,7 @@ public class ChatHandler : DisplayHandler {
 			
 		}
 		if(!TouchScreenKeyboard.visible && !string.IsNullOrEmpty(m_keyboardInput)){
-			ConversationHandler.Instance.AddLine(characterName.text,characterName.color,new DialogueLine(m_keyboardInput));
+			ConversationHandler.Instance.AddLine(characterName.text,new DialogueLine(m_keyboardInput));
 			m_keyboardInput="";
 		}
 

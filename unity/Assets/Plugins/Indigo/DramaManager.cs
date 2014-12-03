@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+
 
 namespace Indigo{
 	public class DramaManager  {
@@ -17,61 +19,120 @@ namespace Indigo{
 		//I know, sorry.
 		public static DramaManager Instance;
 
-		public DramaManager(float maxWidth, float maxHeight){
-			//Set these for where we can put the Character
+		public ActionManager actionManager;
 
+		//Timer Section
+		public int index = 0;
+		private float[] timeSections = new float[]{60,300,300, 300, 300, 300, 30};//Intensity from 0 to 5 (6 is just as a means of allowing people to read final stuff before shift to the end)
+
+		//Last Character Close To part
+		private string lastCharacter = "";
+
+		private delegate GameState InitializeState ();
+		private InitializeState[] beginningStates;
+
+		//Name stuff, just initials because fudge it
+		private string[] initials = new string[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
+
+
+		public DramaManager(float maxWidth, float maxHeight){
 			if (Instance == null) {
 				Instance=this;		
 			}
 			MAX_WIDTH = maxWidth; 
 			MAX_HEIGHT = maxHeight;
+
+			actionManager = new ActionManager ();
+			beginningStates = new InitializeState[]{InitializeGameState, InitializeGameState2};
 		}
 
-		public GameState InitializeGameState(){
-			GameState initState = new GameState ();
-
-			//Make Characters
-			Character playerCharacter = new Character (PLAYER_NAME, MAX_WIDTH / 2f, MAX_HEIGHT / 2f);
-			initState.Player = playerCharacter;
-
-			Character prisonerCharacter =new Character(PRISONER_TITLE,playerCharacter.X+20,playerCharacter.Y);
-			prisonerCharacter.Hidden = true;
-			initState.AddCharacter (prisonerCharacter);
-
-			Location loc = GetNewCharacterLocation (initState);
-
-			Character guardCharacter =new Character(GUARD_TITLE,loc.X,loc.Y);
-			guardCharacter.Hidden = true;
-			initState.AddCharacter (guardCharacter);
-
-			return initState;
+		public GameState GetRandomStartState(){
+			//Pick random starting state
+			Random rand = new Random ();
+			InitializeState init = beginningStates [rand.Next (0, beginningStates.Length)];
+			return init();
 		}
 
-		public GameState UpdateGameState(GameState currentGameState){
-
-			//Check if Player is close enough to anything to do anything
-
+		public GameState UpdateGameState(GameState currentGameState, float timeDelta){
+			bool rePlan = false;
 			//Characters
 			foreach (Character character in currentGameState.Characters) {
-				if(character.IsAlive() && GetDist(character,currentGameState.Player)<MIN_REVEAL){
-					string otherChar = character.Name.Equals(GUARD_TITLE) ? PRISONER_TITLE: GUARD_TITLE;
-					Character other = currentGameState.GetCharacter(otherChar);
-					Item charItem = currentGameState.GetItem(character.Name+"Item"); //TODO; better way to do this, probs based on what's in that characters needed inventory or conditions or something
+				if(character.IsAlive() && GetDist(character,currentGameState.Player)<MIN_REVEAL && character.Name!=lastCharacter){
 
-					if(character.Hidden && character.IsAlive()){
-						currentGameState = ActionLibrary.IntroduceCharacterQuest (currentGameState, character, null, null);
+					if(character.Hidden){
+						//Introduce Character
+						rePlan = true;
+						lastCharacter = character.Name;
 					}
-					else if(charItem!=null && currentGameState.Player.HasItem(charItem) && other.IsAlive() && character.IsAlive() && GetDist(character,currentGameState.Player)<MIN_DIST){
-						currentGameState = ActionLibrary.KillCharacter(currentGameState,character,other,charItem);
+					else if(character.IsAlive() && GetDist(character,currentGameState.Player)<MIN_DIST){//Update you're nearby a new character
+						rePlan = true;
+						lastCharacter = character.Name;
 					}
 				}
 			}
 
 			//Items
 			foreach (Item item in currentGameState.Items) {
-				if(GetDist(currentGameState.Player,item)<MIN_DIST && !item.Hidden){
+				if(GetDist(currentGameState.Player,item)<MIN_DIST && !item.Hidden){ //Get New Item
 					currentGameState.Player.Items.Add(item);
 					item.SetHidden(true);
+					rePlan = true;
+				}
+			}
+
+			int indexToUse = index;
+
+			if (index > timeSections.Length-1) {//Give them some time before the end
+				indexToUse = timeSections.Length-1;			
+			}
+
+			timeSections [indexToUse] -= timeDelta; 
+
+			if (timeSections [indexToUse] < 0) {
+				if(indexToUse<timeSections.Length-1){
+					lastCharacter="";
+					rePlan = true;
+					//index++;
+				}
+				else{
+					return null;
+				}
+			}
+
+			if(rePlan){
+				List<ActionAggregate> actions= (actionManager.GetActions()).ToList();
+				for(int i = index-1; i>0; i--){
+					actions.AddRange(actionManager.GetActions());
+				}
+
+				bool someActionTaken = false;
+
+				foreach(Character c in currentGameState.Characters){
+					GameState newState = c.evaluateBestAction(actions,currentGameState);
+
+					if(newState!=null){
+						someActionTaken=true;
+
+						//Add action
+						currentGameState = newState;
+					}
+				}
+
+				if(!someActionTaken){
+					List<ActionAggregate> dmActions = (actionManager.GetDMActions((index+1))).ToList();
+
+					foreach(ActionAggregate a in dmActions){
+						if(a.DoPreconditionsHold(currentGameState,null,null,null)){
+							currentGameState = a.EvaluateAction(currentGameState,null,null,null);
+							someActionTaken = true;
+							break;
+						}
+					}
+				}
+
+				if(someActionTaken){
+					lastCharacter = "";
+
 				}
 			}
 
@@ -79,7 +140,7 @@ namespace Indigo{
 			return currentGameState;
 		}
 
-		public float Abs(float val){
+		public static float Abs(float val){
 			if (val < 0) {
 				val*=-1f;			
 			}
@@ -87,7 +148,7 @@ namespace Indigo{
 			return val;
 		}
 
-		public float GetDist(Character character, Character character2){
+		public static float GetDist(Character character, Character character2){
 			return	Abs(SqrDist (character.X, character.Y, character2.X, character2.Y));
 		}
 
@@ -100,7 +161,7 @@ namespace Indigo{
 		}
 
 		//SqrDist for now because screw the rules, Sqrt is expensive
-		public float SqrDist(float x1, float y1, float x2, float y2){
+		public static float SqrDist(float x1, float y1, float x2, float y2){
 			return (float)(Math.Pow((x2 - x1), 2) + Math.Pow((y2 - y1), 2));
 		}
 
@@ -112,7 +173,7 @@ namespace Indigo{
 			bool foundGoodLoc = false;
 			int tries = 0;
 
-			while(!foundGoodLoc && tries<100){
+			while(!foundGoodLoc && tries<1000){
 			
 				loc.X = (float)rand.Next(0,(int)MAX_WIDTH);
 				loc.Y = (float)rand.Next (0, (int)MAX_HEIGHT);
@@ -158,22 +219,22 @@ namespace Indigo{
 				characterIndexes.Add(i);		
 			}
 
-			while(characterIndexes.Count>0 && !placed){
+
+			while(characterIndexes.Count>0 && !placed ){
 				int charIndex = characterIndexes[rand.Next(0,characterIndexes.Count)];
 
 				if(currGameState.Characters[charIndex].X!=placer.X && currGameState.Characters[charIndex].Y!=placer.Y){
 					loc.X=currGameState.Characters[charIndex].X;
 					loc.Y=currGameState.Characters[charIndex].Y;
 
-					loc.X+=rand.Next((int)(-30),(int)(30));
-					loc.Y+=rand.Next((int)(-30),(int)(30));
+					loc.X+=rand.Next((int)(-1*100),(int)(100));
+					loc.Y+=rand.Next((int)(-1*100),(int)(100));
 
 					if(OnScreen(loc)){
 						placed = true;
 					}
 				}
 				characterIndexes.Remove(charIndex);
-
 			}
 
 			if (!placed) {
@@ -185,6 +246,94 @@ namespace Indigo{
 
 		public bool OnScreen(Location loc){
 			return loc.X > 100 && loc.Y > 100 && loc.X < MAX_WIDTH-100 && loc.Y < MAX_HEIGHT-100;
+		}
+
+
+		//Name Stuff
+		private string GetRandomPrisonerName(){
+			Random r = new Random ();
+			return PRISONER_TITLE+" "+initials[r.Next(initials.Length)]+".";
+		}
+
+		private string GetRandomGuardName(){
+			Random r = new Random ();
+			return GUARD_TITLE+" "+r.Next(initials.Length)+".";
+		}
+
+		//Index Stuff (if index passed in is higher, go to it)
+		public void CheckIntensity(int _index){
+			if (index < _index) {
+				index=_index;			
+			}
+		}
+
+		//Don't let the player go back to the Map if this is the case)
+		public bool AreWeDone(){
+			return index == timeSections.Length - 1;		
+		}
+
+		//INIT SECTION
+
+		public GameState InitializeGameState(){
+			GameState initState = new GameState ();
+			
+			//Make Characters
+			Character playerCharacter = new Character (PLAYER_NAME, MAX_WIDTH / 2f, MAX_HEIGHT / 2f);
+			initState.Player = playerCharacter;
+			
+			Character prisonerCharacter =new Character(GetRandomPrisonerName(),playerCharacter.X+20,playerCharacter.Y);
+			prisonerCharacter.Hidden = true;
+			prisonerCharacter.AddStatus ("Alive");
+			initState.AddCharacter (prisonerCharacter);
+			
+			Location loc = GetNewCharacterLocation (initState);
+			
+			Character guardCharacter =new Character(GetRandomGuardName(),loc.X,loc.Y);
+			guardCharacter.Hidden = true;
+			guardCharacter.AddStatus ("Alive");
+			initState.AddCharacter (guardCharacter);
+			
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.IsInstigatorAlive, guardCharacter, null, null));
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.IsReceiverDead, guardCharacter, prisonerCharacter, null));
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.StateHasLethalItem, null, null, null));
+
+			prisonerCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.IsInstigatorAlive, prisonerCharacter, null, null));
+			prisonerCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.IsReceiverDead, prisonerCharacter, guardCharacter, null));
+			prisonerCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.StateHasLethalItem, null, null, null));
+
+
+			return initState;
+		}
+
+		public GameState InitializeGameState2(){
+			GameState initState = new GameState ();
+			
+			//Make Characters
+			Character playerCharacter = new Character (PLAYER_NAME, MAX_WIDTH / 2f, MAX_HEIGHT / 2f);
+			initState.Player = playerCharacter;
+			
+			Character prisonerCharacter =new Character(GetRandomPrisonerName(),playerCharacter.X+20,playerCharacter.Y);
+			prisonerCharacter.Hidden = true;
+			prisonerCharacter.AddStatus ("Alive");
+			initState.AddCharacter (prisonerCharacter);
+			
+			Location loc = GetNewCharacterLocation (initState);
+			
+			Character guardCharacter =new Character(GetRandomPrisonerName(),loc.X,loc.Y);
+			guardCharacter.Hidden = true;
+			guardCharacter.AddStatus ("Alive");
+			initState.AddCharacter (guardCharacter);
+			
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.IsInstigatorAlive, guardCharacter, null, null));
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.IsReceiverDead, guardCharacter, prisonerCharacter, null));
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.StateHasLethalItem, null, null, null));
+			
+			prisonerCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.IsInstigatorAlive, prisonerCharacter, null, null));
+			prisonerCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.IsReceiverDead, prisonerCharacter, guardCharacter, null));
+			prisonerCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.StateHasLethalItem, null, null, null));
+			
+			
+			return initState;
 		}
 
 	}

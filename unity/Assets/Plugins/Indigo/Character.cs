@@ -17,7 +17,7 @@ namespace Indigo
     public bool Hidden { get; set; }
     //public List<Attribute> attributes; // TODO emotions, trust, etc
 
-    public List<string> Statuses { get; private set; }
+	public List<string> Statuses { get; private set; } 
 
     public List<CharacterGoal> Goals {get; set;} 
     //Location; 
@@ -30,14 +30,13 @@ namespace Indigo
     // charactername to feelingsAboutChar
     private Dictionary <string, feelingsAboutChar> Relationships {get; set;}
 
-    public Character(string name) 
-    {
-      this.Name = name;
-      this.Hidden = false;
-      this.Relationships = new Dictionary<string, feelingsAboutChar>();
-      this.Goals = new List<CharacterGoal>();
-      this.Items = new List<Item> ();
-      this.Statuses = new List<string>();
+    public Character(string name) {
+    	this.Name = name;
+    	this.Hidden = false;
+    	this.Relationships = new Dictionary<string, feelingsAboutChar>();
+    	this.Goals = new List<CharacterGoal>();
+    	this.Items = new List<Item> ();
+		this.Statuses = new List<string> ();
     }
 
     public Character(string name, float x, float y): this(name){
@@ -62,8 +61,8 @@ namespace Indigo
 	clone.Items.Add(item.Clone());			
       }
 
-      foreach (var status in this.Statuses) {
-	clone.AddStatus(status);
+      foreach (string status in this.Statuses) {
+		clone.AddStatus(status);
       }
 
       return clone;
@@ -87,9 +86,9 @@ namespace Indigo
     /// <param name="statusName">The name of a status (e.g. "Alive").</param>
     /// <returns>True, if the status was a valid status and added to the character, false otherwise.</returns>
     public bool AddStatus(string statusName) {
-      if (CHARACTER_STATUSES.Contains(statusName) && !this.Statuses.Contains(statusName)) {
-	this.Statuses.Add(statusName);
-	return true;
+      if (!this.Statuses.Contains(statusName)) {
+		this.Statuses.Add(statusName);
+		return true;
       }
       return false;
     }
@@ -109,9 +108,9 @@ namespace Indigo
     /// <param name="statusName">The name of a status (e.g. "Alive").</param>
     /// <returns>True, if the characrer has this status and it is removed successfully, false otherwise.</returns>
     public bool RemoveStatus(string statusName) {
-      if (CHARACTER_STATUSES.Contains(statusName)) {
-	// List.Remove should handle the contains check.
-	return this.Statuses.Remove(statusName);
+		if (Statuses.Contains(statusName)) {
+			Statuses.Remove(statusName);
+		return true;
       }
       return false;
     }
@@ -151,8 +150,8 @@ namespace Indigo
     /// <summary>
     /// Score the results of an action against the goal preconditions, counting the size of the overlap; no normalization needed
     /// </summary>
-    private int scoreForGoals (GameState actionResult, Character recipient, Item itm){
-      return this.Goals.Aggregate(0, (score, gc) => score + (gc.IsGoalSatisfied(actionResult) ? 1 : 0)); // xxx doesn't really make sense with the current condition implementation
+    private int scoreForGoals (GameState actionResult){
+      return this.Goals.Aggregate(0, (score, gc) => score + (gc.IsGoalSatisfied(actionResult) ? 1 : 0)); 
     }
 
     /// <summary>
@@ -162,30 +161,109 @@ namespace Indigo
     /// <param name="currentState"> Current world state </param>
     /// <returns> The GameState after evaluating the best action, or the current gamestate if waiting is best </returns>
     public GameState evaluateBestAction (List <ActionAggregate> actions, GameState currentState) {  
-      GameState bestActionState = currentState;
-      int bestActionScore = scoreForGoals(currentState, null, null); // xxx state design doesn't seem to support this well
-      foreach (ActionAggregate act in actions){
-	foreach (Character person in currentState.Characters){
-	  foreach (Item itm in this.Items) {
-	    try {
-	      GameState actionState = act.EvaluateAction(currentState, this, person, itm);
-	      int score = scoreForGoals(actionState,
-					person,
-					itm);
-	      if (score > bestActionScore) {
-		bestActionState = actionState;
-		bestActionScore = score; 
-	      }
-	    } catch (InvalidOperationException e) { 
-	      // do nothing; preconditions failed
-	    } // catch
-	  } // items
-	} // characters
+    	GameState bestActionState = null;
+    	int bestActionScore = scoreForGoals(currentState); // xxx state design doesn't seem to support this well
+    	foreach (ActionAggregate act in actions){
+			foreach (Character person in currentState.Characters){
+				foreach (Item itm in currentState.Items) {
+	      			GameState actionState = act.EvaluateAction(currentState, this, person, itm);
+
+						if(actionState!=null){
+			      			int score = scoreForGoals(actionState);
+
+							GameState future = (evaluateBestFutureAction(actions,actionState));
+							if(future!=null){
+								score+=scoreForGoals(future);
+
+								future = (evaluateBestFutureAction(actions,future));
+								if(future!=null){
+									score+=scoreForGoals(future);
+								}
+							}
+
+
+
+			      			if (score >= bestActionScore) {
+								bestActionState = actionState;
+								bestActionScore = score;
+			      			}
+						}
+	  			} // items
+
+				GameState actionState3 = act.EvaluateAction(currentState, this, person, null);
+				
+					if(actionState3!=null){
+						int score = scoreForGoals(actionState3);
+					if (score >= bestActionScore) {
+						bestActionState = actionState3;
+						bestActionScore = score;
+					}
+				}
+			} // characters
+
+				GameState actionState2 = act.EvaluateAction(currentState, this, null, null);
+				
+				if(actionState2!=null){
+					int score = scoreForGoals(actionState2);
+					if (score >= bestActionScore) {
+						bestActionState = actionState2;
+						bestActionScore = score;
+					}
+				}
+
+
       } // actions
       return bestActionState;
     } // END chooseBestAction
-  } // END Character
-	
+
+		public GameState evaluateBestFutureAction (List <ActionAggregate> actions, GameState currentState) {  
+			GameState bestActionState = null;
+			int bestActionScore = scoreForGoals(currentState); // xxx state design doesn't seem to support this well
+			foreach (ActionAggregate act in actions){
+				foreach (Character person in currentState.Characters){
+					foreach (Item itm in currentState.Items) {
+						GameState actionState = act.EvaluateFutureAction(currentState, this, person, itm);
+						
+						if(actionState!=null){
+							int score = scoreForGoals(actionState);
+							
+							if (score >= bestActionScore) {
+								bestActionState = actionState;
+								bestActionScore = score;
+							}
+						}
+					} // items
+					
+					GameState actionState3 = act.EvaluateFutureAction(currentState, this, person, null);
+					
+					if(actionState3!=null){
+						int score = scoreForGoals(actionState3);
+						if (score >= bestActionScore) {
+							bestActionState = actionState3;
+							bestActionScore = score;
+						}
+					}
+				} // characters
+				
+				GameState actionState2 = act.EvaluateFutureAction(currentState, this, null, null);
+				
+				if(actionState2!=null){
+					int score = scoreForGoals(actionState2);
+					if (score >= bestActionScore) {
+						bestActionState = actionState2;
+						bestActionScore = score;
+					}
+				}
+				
+				
+			} // actions
+			return bestActionState;
+		} // END chooseBestAction
+
+} // END Character
+
+
+
   /// <summary>
   /// Feelings possessed by one char towards another. Values should be -2 to +2. 
   /// </summary>
@@ -194,4 +272,5 @@ namespace Indigo
     public int Trust {set; get;} // -2 = never believe, +2 = always believe
     public int Like {set; get;} // -2 = hate, +2 = adore
   }
+
 }

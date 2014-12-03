@@ -24,6 +24,8 @@ public class ConversationHandler : DisplayHandler {
 
 	private const float DISTANCE_BETWEEN_CONVERSATIONS = 0.2f;
 
+	public AudioClip messageSound;
+
 	//Initialize Dependencies
 	public override void Init (){
 		base.Init ();
@@ -69,6 +71,10 @@ public class ConversationHandler : DisplayHandler {
 
 	//Add character dialogue lines through here by characterName and the current dialogue line in that conversation
 	public void AddLine(string characterName, DialogueLine dialogue){
+		Handheld.Vibrate ();
+
+		AudioSource.PlayClipAtPoint (messageSound, Vector3.zero);
+
 		if (!m_conversationHistories.ContainsKey (characterName)) { //New conversation
 				m_conversationHistories.Add (characterName, new List<DialogueLine> ());
 
@@ -140,5 +146,10 @@ public class ConversationHandler : DisplayHandler {
 	public void TransferToChat(ConversationDisplayUnit displayUnit){
 		m_TransferToChat = true;
 		ChatHandler.Instance.SetCurrentConversation(displayUnit.characterName.text, displayUnit.characterName.color, m_conversationHistories[displayUnit.characterName.text]);		
+	}
+
+	public void TransferToChat(string name){
+		Debug.Log ("Transfer To Chat: " + name);
+		ChatHandler.Instance.SetCurrentConversation(name, new Color32(111,0,255,255), m_conversationHistories[name]);		
 	}
 }

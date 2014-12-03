@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Indigo;
 
 //Handles
@@ -32,7 +33,7 @@ public class GameplayManager : MonoBehaviour {
 		}
 
 		m_dramaManager = new DramaManager (Screen.width,Screen.height);
-		currGameState = m_dramaManager.InitializeGameState ();
+		currGameState = m_dramaManager.GetRandomStartState ();
 
 		//Start the display to start with
 		if (m_displays.ContainsKey (displayToStartWith)) {
@@ -52,8 +53,8 @@ public class GameplayManager : MonoBehaviour {
 		//Handles the Display
 		if(m_displays.ContainsKey(m_currDisplay)){
 			string nextDisplay = m_displays [m_currDisplay].UpdateDisplay ();
-
-			if (!string.IsNullOrEmpty (nextDisplay) && !nextDisplay.Equals (m_currDisplay) && m_displays.ContainsKey(nextDisplay)) {
+			//
+			if (!string.IsNullOrEmpty (nextDisplay) && !nextDisplay.Equals (m_currDisplay) && m_displays.ContainsKey(nextDisplay) && (!m_dramaManager.AreWeDone() || (m_dramaManager.AreWeDone() && nextDisplay!=(MapHandler.Instance.DisplayName)))) {
 				SwitchDisplays(nextDisplay);
 			}
 		}
@@ -62,19 +63,27 @@ public class GameplayManager : MonoBehaviour {
 		Vector2 playerPosCurr = MapHandler.Instance.PlayerPos;
 		currGameState.Player.SetLocation (playerPosCurr.x, playerPosCurr.y);
 
-		currGameState = m_dramaManager.UpdateGameState (currGameState);
+		currGameState = m_dramaManager.UpdateGameState (currGameState, Time.deltaTime);
 
-		UpdateDisplay ();
+		if (currGameState == null) {
+			Application.LoadLevel("TheEnd");		
+		}
+		else{
+			UpdateDisplay ();
+			if(m_dramaManager.AreWeDone()){
+				ConversationHandler.Instance.TransferToChat("Indigo Prison");
+				SwitchDisplays(ChatHandler.Instance.DisplayName);
+				
+			}
+		}
 
 	}
 
 	public void UpdateDisplay(){
-
 		//CHARACTER DISPLAYS
 		foreach (Character c in currGameState.Characters) {
 			if(c.IsAlive() && !c.Hidden && !MapHandler.Instance.HasIndicator(c.Name)){
 				int characterType = c.Name.Contains(DramaManager.GUARD_TITLE) ? MapHandler.GUARD_ICON: MapHandler.PRISONER_ICON;
-
 				MapHandler.Instance.AddIndicator(c.Name,characterType,new Vector2(c.X,c.Y));
 			}
 			else if(((c.IsAlive() && c.Hidden) || (!c.IsAlive())) && MapHandler.Instance.HasIndicator(c.Name)){
@@ -102,17 +111,22 @@ public class GameplayManager : MonoBehaviour {
 					for(int i = ourCount; i<kvp.Value.Count; i++){
 						ConversationHandler.Instance.AddLine(kvp.Key,kvp.Value[i]);
 					}
-				}
 
+
+				}
 			}
 			else{
 				foreach(DialogueLine line in kvp.Value){
 					ConversationHandler.Instance.AddLine(kvp.Key,line);
 				}
+				/**
+				Debug.Log ("New Printout");
+				foreach(string status in currGameState.Player.Statuses){
+					Debug.Log ("Status: "+status);
+				}
+				*/
 			}
 		}
-
-
 	}
 
 	private void SwitchDisplays(string nextDisplay){

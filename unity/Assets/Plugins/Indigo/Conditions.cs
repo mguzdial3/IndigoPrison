@@ -53,7 +53,7 @@ namespace Indigo
         /// <param name="receiver">The secondary character.</param>
         /// <param name="item">The item.</param>
         /// <param name="priority">The goal priority.</param>
-        public CharacterGoal(Condition condition, Character instigator, Character receiver, Item item, int priority) {
+        public CharacterGoal(Condition condition, Character instigator, Character receiver, Item item, int priority=0) {
             this.Condition = condition;
             this.Instigator = instigator;
             this.Receiver = receiver;
@@ -77,6 +77,8 @@ namespace Indigo
     /// </summary>
     public static class ConditionLibrary
     {
+
+
         #region ALIVE-DEAD CONDITIONS
         // NOTE (kasiu): The following four functions use the "IsAlive" method found in Character.cs.
         //               This is a shorthand method due to the fact that we check the "alive" status in 
@@ -90,7 +92,7 @@ namespace Indigo
         /// </summary>
         public static bool IsInstigatorAlive(GameState state, Character instigator, Character receiver = null, Item item = null) {
             var character = state.GetCharacter(instigator.Name);
-            return (character != null) ? character.IsAlive() : false;
+            return (character != null) && character.IsAlive() ;
         }
 
         /// <summary>
@@ -98,8 +100,11 @@ namespace Indigo
         /// Makes use of optional parameters on the condition.
         /// </summary>
         public static bool IsReceiverAlive(GameState state, Character instigator, Character receiver, Item item = null) {
-            var character = state.GetCharacter(receiver.Name);
-            return(character != null) ? character.IsAlive() : false;
+			Character character = null;
+			if(receiver!=null){
+            	character = state.GetCharacter(receiver.Name);
+			}
+            return(character != null) && character.IsAlive() ;
         }
 
         /// <summary>
@@ -108,7 +113,7 @@ namespace Indigo
         /// </summary>
         public static bool IsInstigatorDead(GameState state, Character instigator, Character receiver = null, Item item = null) {
             var character = state.GetCharacter(instigator.Name);
-            return (character != null) ? !character.IsAlive() : false;
+            return (character != null) && !character.IsAlive();
         }
 
         /// <summary>
@@ -117,7 +122,7 @@ namespace Indigo
         /// </summary>
         public static bool IsReceiverDead(GameState state, Character instigator, Character receiver, Item item = null) {
             var character = state.GetCharacter(receiver.Name);
-            return (character != null) ? !character.IsAlive() : false;
+            return (character != null) && !character.IsAlive();
         }
         #endregion
 
@@ -139,6 +144,80 @@ namespace Indigo
             return (character != null) ? character.HasStatus("Mobile") : false;
         }
 
+		#region PLAYER CONDITIONS
+
+		public static bool PlayerKnowsAboutDesireToKill(GameState state, Character instigator, Character receiver, Item item = null) {
+			return instigator!=null && receiver!=null && state.Player.HasStatus (instigator.Name + "WantsToKill" + receiver.Name);
+		}
+
+		public static bool PlayerDoesntKnowAboutDesireToKill(GameState state, Character instigator, Character receiver, Item item = null) {
+			return instigator!=null && receiver!=null && !state.Player.HasStatus (instigator.Name + "WantsToKill" + receiver.Name);
+		}
+
+		public static bool PlayerKnowsAboutWantsItem(GameState state, Character instigator, Character receiver, Item item = null) {
+			return instigator!=null && state.Player.HasStatus (instigator.Name + "WantsItem");
+		}
+		
+		public static bool PlayerDoesntKnowAboutWantsItem(GameState state, Character instigator, Character receiver, Item item = null) {
+			return instigator!=null && !state.Player.HasStatus (instigator.Name + "WantsItem");
+		}
+
+		public static bool PlayerKnowsInstigator(GameState state, Character instigator, Character receiver, Item item = null) {
+			return instigator!=null && state.Player.HasStatus ("Knows" + instigator.Name);
+		}
+
+		public static bool PlayerDoesntKnowsInstigator(GameState state, Character instigator, Character receiver, Item item = null) {
+			return instigator!=null && !state.Player.HasStatus ("Knows" + instigator.Name);
+		}
+
+		public static bool PlayerKnowsToKillReceiver(GameState state, Character instigator, Character receiver, Item item = null) {
+			return receiver!=null && state.Player.HasStatus ("KnowsToKill" + receiver.Name);
+		}
+
+		public static bool PlayerDoesntKnowToKillReceiver(GameState state, Character instigator, Character receiver, Item item = null) {
+			return receiver!=null && !state.Player.HasStatus ("KnowsToKill" + receiver.Name);
+		}
+
+		public static bool PlayerHasLethalItem(GameState state, Character instigator, Character receiver, Item item = null) {
+			return state.Player.Items.Find (itom=>itom.HasStatus("Lethal"))!=null;
+		}
+
+		public static bool PlayerKnowsSomeone(GameState state, Character instigator, Character receiver, Item item = null){
+			bool knowsSomeone = false;
+
+			foreach (string s in state.Player.Statuses) {
+				if(s.Contains("Knows")){
+					knowsSomeone = true;
+				}
+			}
+
+			return knowsSomeone;
+		}
+
+		public static bool PlayerHasReceiverItem(GameState state, Character instigator, Character receiver, Item item) {
+			bool canDo = false;
+			if(receiver!=null){
+				Item itm = state.Player.Items.Find (itom=>itom.Name.Contains(receiver.Name));
+				canDo = itm!=null;
+			}
+			return canDo;
+		}
+		
+		public static bool PlayerHasInstigatorItem(GameState state, Character instigator, Character receiver, Item item) {
+			bool canDo = false;
+			if(instigator!=null){
+				Item itm = state.Player.Items.Find (itom=>itom.Name.Contains(instigator.Name));
+				canDo = itm!=null;
+			}
+			return canDo;
+		}
+
+		public static bool PlayerCloseEnoughToRevealReceiver(GameState state, Character instigator, Character receiver, Item item) {
+			return receiver != null && DramaManager.GetDist (state.Player, receiver) < DramaManager.MIN_DIST;
+		}
+
+		#endregion
+
         #region ITEM CONDITIONS
         /// <summary>
         /// Returns whether or not the instigating character has a particular item.
@@ -153,6 +232,68 @@ namespace Indigo
         public static bool DoesReceiverHaveItem(GameState state, Character instigator, Character receiver, Item item) {
             return state.Characters.Find(c => c.Name == receiver.Name).Items.Contains(item);
         }
+
+		public static bool StateHasLethalItem(GameState state, Character instigator, Character receiver, Item item) {
+			Item itm = state.Items.Find (itom=>itom.Statuses.Contains("Lethal"));
+			return itm!=null;
+		}
+
+		public static bool IsItemDistance(GameState state, Character instigator, Character receiver, Item item) {
+			return item!=null && item.HasStatus("Distance");
+		}
+
+		public static bool IsItemNotDistance(GameState state, Character instigator, Character receiver, Item item) {
+			return item!=null && !item.HasStatus("Distance");
+		}
+
+
+
+		#endregion
+
+		#region HIDDEN CONDITIONS
+
+		/// <summary>
+		/// Returns whether or not the instigator is visible
+		/// </summary>
+		public static bool IsInstigatorVisible(GameState state, Character instigator, Character receiver, Item item) {
+			return instigator!=null &&!state.Characters.Find(c => c.Name == instigator.Name).Hidden;
+		}
+
+		/// <summary>
+		/// Returns whether or not the instigator is hidden
+		/// </summary>
+		public static bool IsInstigatorHidden(GameState state, Character instigator, Character receiver, Item item) {
+			return instigator!=null && state.Characters.Find(c => c.Name == instigator.Name).Hidden;
+		}
+
         #endregion
+
+		#region DISTANCE CONDITIONS
+
+		public static bool CloseEnoughToReveal(GameState state, Character instigator, Character receiver, Item item) {
+			return instigator != null && receiver != null && DramaManager.GetDist (instigator, receiver) < DramaManager.MIN_REVEAL;
+		}
+
+		public static bool CloseEnoughToInteract(GameState state, Character instigator, Character receiver, Item item) {
+			return instigator != null && receiver != null && DramaManager.GetDist (instigator, receiver) < DramaManager.MIN_DIST;
+		}
+
+		public static bool CloseEnoughToPlayer(GameState state, Character instigator, Character receiver, Item item) {
+			return instigator != null && DramaManager.GetDist (instigator, state.Player) < DramaManager.MIN_DIST;
+		}
+
+		#endregion
+
+		#region WEIRD CONDITIONS
+
+		public static bool NoCondition(GameState state, Character instigator, Character receiver, Item item) {
+			return true;		
+		}
+
+		public static bool InstigatorNotReceiver(GameState state, Character instigator, Character receiver, Item item) {
+			return instigator!=null && receiver!=null && instigator.Name!=receiver.Name;		
+		}
+
+		#endregion
     }
 }

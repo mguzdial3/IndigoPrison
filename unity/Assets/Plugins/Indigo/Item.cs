@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Indigo{
   public class Item  {
     public string Name { get; private set; }
-    public List<string> ITEM_STATUSES = new List<string> { "Lethal", "Liberating" }; // ENUM-like
+    public List<string> ITEM_STATUSES = new List<string> { "Lethal", "Liberating" }; // Why this way?
     public List<string> Statuses { get; private set; }
     //Location; 
     public float X{ get; private set; }
@@ -35,7 +35,7 @@ namespace Indigo{
       clone.SetHidden (Hidden);
       clone.SetAlive (Alive);
       foreach (var status in this.Statuses) {
-	clone.AddStatus(status);
+		clone.AddStatus(status);
       }
       
 
@@ -49,7 +49,7 @@ namespace Indigo{
     /// <param name="statusName">The name of a status (e.g. "Lethal").</param>
     /// <returns>True, if the status was a valid status and added to the item, false otherwise.</returns>
     public bool AddStatus(string statusName) {
-      if (ITEM_STATUSES.Contains(statusName) && !this.Statuses.Contains(statusName)) {
+      if ( !this.Statuses.Contains(statusName)) {
 	this.Statuses.Add(statusName);
 	return true;
       }
