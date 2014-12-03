@@ -77,14 +77,6 @@ namespace Indigo{
       }
       return false;
     }
-
-    /// <summary>
-    /// A shorthand function for checking aliveness/deadness of the item. Is it a fresh banana? 
-    /// </summary>
-    /// <returns>True, if the character has the "Alive" status, false otherwise.</returns>
-    public bool IsAlive() {
-      return this.HasStatus("Alive");
-    }
 #endregion
 
     public override bool Equals (object obj){

@@ -217,6 +217,24 @@ namespace Indigo
 		}
 
 		#endregion
+        /// <summary>
+        /// Returns whether or not the instigating character trusts the receiving character.
+        /// Makes use of optional parameters on the condition.
+        /// </summary>
+        public static bool DoesInstigatorTrustReceiver(GameState state, Character instigator, Character receiver, Item item = null) {
+            var character = state.GetCharacter(instigator.Name);
+            return (character != null) ? (character.GetRelationship(receiver.Name).Trust > 0) : false;
+        }
+
+        /// <summary>
+        /// Returns whether or not the instigating character like the receiving character.
+        /// Makes use of optional parameters on the condition.
+        /// </summary>
+        public static bool DoesInstigatorLikeReceiver(GameState state, Character instigator, Character receiver, Item item = null) {
+            var character = state.GetCharacter(instigator.Name);
+            return (character != null) ? (character.GetRelationship(receiver.Name).Like > 0) : false;
+        }
+
 
         #region ITEM CONDITIONS
         /// <summary>
@@ -295,5 +313,14 @@ namespace Indigo
 		}
 
 		#endregion
+
+        public static bool IsItemLethal(GameState state, Character instigator, Character receiver, Item item) {
+            return (item != null) ? item.HasStatus("Lethal") : false;
+        }
+
+        public static bool IsItemLiberating(GameState state, Character instigator, Character receiver, Item item) {
+            return (item != null) ? item.HasStatus("Liberating") : false;
+        }
+
     }
 }
