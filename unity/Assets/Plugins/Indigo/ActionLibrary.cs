@@ -12,8 +12,25 @@ namespace Indigo
     public static class ActionLibrary
     {
         #region SINGLE CHARACTER ACTIONS
+        /// <summary>
+        /// The instigating character finds the item lying around the environment.
+        /// </summary>
+        public static GameState FindItem(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+            var finder = newState.GetCharacter(instigator.Name);
 
-        // The instigating character frees him/her/itself with a liberating item.
+            if (finder != null && newState.Items.Contains(item)) {
+                newState.Items.Remove(item);
+                finder.Items.Add(item);
+                newState.AddLine(finder.Name, new DialogueLine(finder.Name, "Well look here! I found a " + item.Name));
+            }
+
+            return newState;
+        }
+
+        /// <summary>
+        /// The instigating character frees him/her/itself with a liberating item.
+        /// </summary>
         public static GameState FreeCharacterWithItem(GameState state, Character instigator, Character receiver, Item item) {
             GameState newState = state.Clone();
             var liberated = newState.GetCharacter(instigator.Name);
@@ -99,6 +116,65 @@ namespace Indigo
         }
 
         /// <summary>
+        /// The instigating character kills the receiving character. No items are involved.
+        /// </summary>
+        public static GameState KillCharacter(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+            var killedIndex = newState.Characters.FindIndex(c => c.Name == receiver.Name);
+            // If the character exists...
+            if (killedIndex >= 0 && killedIndex < newState.Characters.Count()) {
+                var killed = newState.Characters[killedIndex];
+                // KILL IT (and overwrite the old character)
+                killed.RemoveStatus("Alive");
+                newState.Characters[killedIndex] = killed;
+            }
+			
+			newState.AddLine(instigator.Name, new DialogueLine(instigator.Name,"Haha, now I can kill the "+receiver.Name));
+            return newState;
+        }
+
+        /// <summary>
+        /// The instigating character locks up the receiving character.
+        /// </summary>
+        public static GameState LockUpCharacter(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+
+            // May not be an actual guard, but this needed a variable name that wasn't "lockerUpper"
+            var guard = newState.GetCharacter(instigator.Name);
+            var prisoner = newState.GetCharacter(receiver.Name);
+
+            if (guard != null && prisoner != null) {
+                prisoner.RemoveStatus("Mobile");
+                // TODO (kasiu): Add some more/better lines?
+                newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "Stay locked up in there!"));
+            }
+
+            return newState;
+        }
+
+        /// <summary>
+        /// The instigating character steals an item from the receiving character.
+        /// One of the preconditions should be that the receiving character has the item.
+        /// </summary>
+        public static GameState StealItemFromCharacter(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+            var thief = newState.GetCharacter(instigator.Name);
+            var victim = newState.GetCharacter(receiver.Name);
+
+            // Nothing should happen if for some reason the game state is mucked up.
+            if (thief != null && victim != null && victim.HasItem(item)) {
+                victim.Items.Remove(item);
+                thief.Items.Add(item);
+                newState.AddLine(thief.Name, new DialogueLine(thief.Name, "Success! This " + item.Name + " is mine!"));
+                newState.AddLine(victim.Name, new DialogueLine(victim.Name, "Wait...where did the " + item.Name + " go?"));
+            }
+
+            return newState;
+        }
+        #endregion
+
+        #region INTRODUCTIONS (QUESTS)
+        /// <summary>
         /// The instigating character is given a quest by the the receiving character.
         /// The receiving character is dehidden and their initial item quest is added to the world state.
         /// </summary>
@@ -119,26 +195,6 @@ namespace Indigo
 
             return newState;
         }
-
-        /// <summary>
-        /// The instigating character kills the receiving character. No items are involved.
-        /// </summary>
-        public static GameState KillCharacter(GameState state, Character instigator, Character receiver, Item item) {
-            GameState newState = state.Clone();
-            var killedIndex = newState.Characters.FindIndex(c => c.Name == receiver.Name);
-            // If the character exists...
-            if (killedIndex >= 0 && killedIndex < newState.Characters.Count()) {
-                var killed = newState.Characters[killedIndex];
-                // KILL IT (and overwrite the old character)
-                killed.RemoveStatus("Alive");
-                newState.Characters[killedIndex] = killed;
-            }
-			
-			newState.AddLine(instigator.Name, new DialogueLine(instigator.Name,"Haha, now I can kill the "+receiver.Name));
-            return newState;
-        }
-
-		#region INTRODUCTIONS
 
 		//Introduces a character by dehiding them, and adding their initial item quest to the world state
 		public static GameState IntroduceMurderQuest(GameState state, Character instigator, Character receiver, Item item){
@@ -222,7 +278,6 @@ namespace Indigo
 			
 			return newState;
 		}
-
 		#endregion
 
 		#region TELLSTUFF
@@ -376,80 +431,36 @@ namespace Indigo
 		#endregion
 
 		#region DM ACTIONS
-
-		public static GameState BlowUpThePrison(GameState state, Character instigator, Character receiver, Item item){
-			GameState newState = state.Clone();
-			
-			newState.AddLine ("Indigo Prison",new DialogueLine("Indigo Prison", "The prison blew up. Whoops."));
-
-
-			return newState;
-		}
-
-		#endregion
-
-		#region SINGLE CHARACTER ACTIONS
-		/// <summary>
-		/// The instigating character finds the item lying around the environment.
-		/// </summary>
-		public static GameState FindItem(GameState state, Character instigator, Character receiver, Item item) {
-			GameState newState = state.Clone();
-			var finder = newState.GetCharacter(instigator.Name);
-			
-			if (finder != null && newState.Items.Contains(item)) {
-				newState.Items.Remove(item);
-				finder.Items.Add(item);
-				newState.AddLine(finder.Name, new DialogueLine(finder.Name, "Well look here! I found a " + item.Name));
-			}
-			
-			return newState;
-		}
-
-		#endregion
-		
-		#region TWO-CHARACTER ACTIONS
-
-		// Steals an item from another character. One of the preconditions should be that the receiver has the item.
-		/// <summary>
-		/// The instigating character steals an item from the receiving character.
-		/// One of the preconditions should be that the receiving character has the item.
-		/// </summary>
-		public static GameState StealItemFromCharacter(GameState state, Character instigator, Character receiver, Item item) {
-			GameState newState = state.Clone();
-			var thief = newState.GetCharacter(instigator.Name);
-			var victim = newState.GetCharacter(receiver.Name);
-			
-			// Nothing should happen if for some reason the game state is mucked up.
-			if (thief != null && victim != null && victim.HasItem(item)) {
-				victim.Items.Remove(item);
-				thief.Items.Add(item);
-				newState.AddLine(thief.Name, new DialogueLine(thief.Name, "Success! This " + item.Name + " is mine!"));
-				newState.AddLine(victim.Name, new DialogueLine(victim.Name, "Wait...where did the " + item.Name + " go?"));
-			}
-			
-			return newState;
-		}
-
-		#endregion
         /// <summary>
-        /// The instigating character locks up the receiving character.
+        /// BLOWS UP THE PRISON! BEST ENDING EVER!
         /// </summary>
-        public static GameState LockUpCharacter(GameState state, Character instigator, Character receiver, Item item) {
+		public static GameState BlowUpThePrison(GameState state, Character instigator, Character receiver, Item item){
+			GameState newState = state.Clone();			
+			newState.AddLine ("Indigo Prison",new DialogueLine("Indigo Prison", "The prison blew up. Whoops."));
+			return newState;
+		}
+
+        /// <summary>
+        /// DM causes all prisoners to be locked up, prohibiting them from moving around.
+        /// XXX (kasiu): Also locks up any guards due to lack of filtering.
+        /// </summary>
+        public static GameState LockUpAllThePrisoners(GameState state, Character instigator, Character receiver, Item item) {
             GameState newState = state.Clone();
-
-            // May not be an actual guard, but this needed a variable name that wasn't "lockerUpper"
-            var guard = newState.GetCharacter(instigator.Name);
-            var prisoner = newState.GetCharacter(receiver.Name);
-
-            if (guard != null && prisoner != null) {
-                prisoner.RemoveStatus("Mobile");
-                // TODO (kasiu): Add some more/better lines?
-                newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "Stay locked up in there!"));
-            }
-
+            newState.Characters.ForEach(c => { if (c.HasStatus("Mobile") && c.HasStatus("Alive")) { c.RemoveStatus("Mobile"); } });
+            newState.AddLine("Indigo Prison", new DialogueLine("Indigo Prison", "All of the prisoners have been locked up!"));
             return newState;
         }
 
-        #endregion
+        /// <summary>
+        /// DM causes all prisoners to be released, allowing them mobility.
+        /// XXX (kasiu): Also frees any locked up guards currently.
+        /// </summary>
+        public static GameState ReleaseAllThePrisoners(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+            newState.Characters.ForEach(c => { if (!c.HasStatus("Mobile") && c.HasStatus("Alive")) { c.AddStatus("Mobile"); } });
+            newState.AddLine("Indigo Prison", new DialogueLine("Indigo Prison", "All of the prisoners have freed themselves!"));
+            return newState;
+        }
+		#endregion		
     }
 }
