@@ -247,6 +247,7 @@ namespace Indigo
         /// <summary>
         /// Returns whether or not the receiving character has a particular item.
         /// </summary>
+        /// 
         public static bool DoesReceiverHaveItem(GameState state, Character instigator, Character receiver, Item item) {
             return state.Characters.Find(c => c.Name == receiver.Name).Items.Contains(item);
         }
@@ -264,7 +265,13 @@ namespace Indigo
 			return item!=null && !item.HasStatus("Distance");
 		}
 
+        public static bool IsItemLethal(GameState state, Character instigator, Character receiver, Item item) {
+            return (item != null) ? item.HasStatus("Lethal") : false;
+        }
 
+        public static bool IsItemLiberating(GameState state, Character instigator, Character receiver, Item item) {
+            return (item != null) ? item.HasStatus("Liberating") : false;
+        }
 
 		#endregion
 
@@ -313,14 +320,5 @@ namespace Indigo
 		}
 
 		#endregion
-
-        public static bool IsItemLethal(GameState state, Character instigator, Character receiver, Item item) {
-            return (item != null) ? item.HasStatus("Lethal") : false;
-        }
-
-        public static bool IsItemLiberating(GameState state, Character instigator, Character receiver, Item item) {
-            return (item != null) ? item.HasStatus("Liberating") : false;
-        }
-
     }
 }
