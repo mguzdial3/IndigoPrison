@@ -182,6 +182,13 @@ namespace Indigo
 			return state.Player.Items.Find (itom=>itom.HasStatus("Lethal"))!=null;
 		}
 
+        /// <summary>
+        /// Returns whether or not the player has a liberating item.
+        /// </summary>
+        public static bool PlayerHasLiberatingItem(GameState state, Character instigator, Character receiver, Item item = null) {
+            return (state.Player.Items.Find(i => i.HasStatus("Liberating")) != null);
+        }
+
 		public static bool PlayerKnowsSomeone(GameState state, Character instigator, Character receiver, Item item = null){
 			bool knowsSomeone = false;
 
@@ -256,6 +263,14 @@ namespace Indigo
 			Item itm = state.Items.Find (itom=>itom.Statuses.Contains("Lethal"));
 			return itm!=null;
 		}
+
+        /// <summary>
+        /// Returns whether or not the game environment contains a liberating item.
+        /// </summary>
+        public static bool DoesStateHaveLiberatingItem(GameState state, Character instigator, Character receiver, Item item) {
+            Item itm = state.Items.Find(i => i.Statuses.Contains("Liberating"));
+            return (itm != null);
+        }
 
 		public static bool IsItemDistance(GameState state, Character instigator, Character receiver, Item item) {
 			return item!=null && item.HasStatus("Distance");

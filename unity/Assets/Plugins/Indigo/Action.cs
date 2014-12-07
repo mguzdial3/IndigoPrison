@@ -120,7 +120,6 @@ namespace Indigo
 		private void ConstructAllActions(){
 			allActions = new List<ActionAggregate>();
 
-			
 			var preconditions = new List<Condition>{ ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerKnowsAboutDesireToKill, ConditionLibrary.PlayerKnowsToKillReceiver, ConditionLibrary.PlayerHasLethalItem, ConditionLibrary.PlayerCloseEnoughToRevealReceiver, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.IsItemNotDistance};
 			var killCharacter = new ActionAggregate(ActionLibrary.CloseKillCharacter, 5, preconditions);
 			this.AddAction(killCharacter);
@@ -154,8 +153,23 @@ namespace Indigo
 			intro = new ActionAggregate(ActionLibrary.IntroduceSelfDistance, 1, preconditions);
 			this.AddAction(intro);
 
+            // The escape quest.
+            preconditions = new List<Condition> { ConditionLibrary.IsInstigatorHidden, ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.PlayerDoesntKnowsInstigator, ConditionLibrary.InstigatorNotReceiver };
+            intro = new ActionAggregate(ActionLibrary.IntroduceEscapeQuest, 2, preconditions);
+            this.AddAction(intro);
 
-		}
+            preconditions = new List<Condition> { ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerHasLiberatingItem, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.PlayerDoesntKnowAboutWantsItem, ConditionLibrary.DoesStateHaveLiberatingItem };
+            var escape = new ActionAggregate(ActionLibrary.TellPlayerToComeBack, 3, preconditions);
+            this.AddAction(escape);
+
+            preconditions = new List<Condition> { ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerHasLiberatingItem, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.PlayerCloseEnoughToRevealReceiver, ConditionLibrary.DoesStateHaveLiberatingItem, ConditionLibrary.PlayerKnowsAboutWantsItem };
+            escape = new ActionAggregate(ActionLibrary.TakeItemFromCharacter, 2, preconditions);
+            this.AddAction(escape);
+
+            preconditions = new List<Condition> { ConditionLibrary.IsInstigatorAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.DoesInstigatorHaveItem, ConditionLibrary.IsItemLiberating, ConditionLibrary.DoesStateHaveLiberatingItem };
+            escape = new ActionAggregate(ActionLibrary.FreeCharacterWithItem, 5, preconditions);
+            this.AddAction(escape);        
+        }
 
 		private void ConstructDMActions(){
 			dmActions = new List<ActionAggregate> ();

@@ -4,7 +4,9 @@ using System.Collections.Generic;
 namespace Indigo{
   public class Item  {
     public string Name { get; private set; }
-    public List<string> ITEM_STATUSES = new List<string> { "Lethal", "Liberating" }; // Why this way?
+    // TODO (kasiu): Come up with a better way to handle this.
+    // List keeps track of all possible statuses (so that you can't just add garbage statuses), but maybe we don't care if they're "valid" or not.
+    public static List<string> ITEM_STATUSES = new List<string> { "Lethal", "Liberating", "Distance" }; // Why this way? (GOOD QUESTION.)
     public List<string> Statuses { get; private set; }
     //Location; 
     public float X{ get; private set; }

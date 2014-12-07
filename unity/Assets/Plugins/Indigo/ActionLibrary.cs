@@ -171,6 +171,26 @@ namespace Indigo
 
             return newState;
         }
+
+        /// <summary>
+        /// The instigating character steals an item from the receiving character.
+        /// One of the preconditions should be that the receiving character has the item.
+        /// This is the benign version of STEALING.
+        /// </summary>
+        public static GameState TakeItemFromCharacter(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+            var thief = newState.GetCharacter(instigator.Name);
+            var victim = newState.GetCharacter(receiver.Name);
+
+            // Nothing should happen if for some reason the game state is mucked up.
+            if (thief != null && victim != null && victim.HasItem(item)) {
+                victim.Items.Remove(item);
+                thief.Items.Add(item);
+                newState.AddLine(thief.Name, new DialogueLine(thief.Name, "Great! Thanks for getting that for me!"));
+            }
+
+            return newState;
+        }
         #endregion
 
         #region INTRODUCTIONS (QUESTS)
@@ -278,6 +298,44 @@ namespace Indigo
 			
 			return newState;
 		}
+
+        /// <summary>
+        /// Introduces an escape quest.
+        /// </summary>
+        /// <returns></returns>
+        public static GameState IntroduceEscapeQuest(GameState state, Character instigator, Character receiver, Item item) {
+            GameState newState = state.Clone();
+
+            if (instigator != null && receiver != null) {
+                Location loc = DramaManager.Instance.GetNewItemLocation(state, instigator);
+
+                var escapee = newState.GetCharacter(instigator.Name);
+                escapee.Hidden = false;
+
+                Item key = new Item(instigator.Name + "Item" + "Liberating", loc.X, loc.Y);
+                newState.AddItem(key);
+                key.AddStatus("Liberating");
+                key.SetHidden(false);
+
+                Random r = new Random();
+
+                //if (r.Next(0, 2) == 0) {
+                //    key.AddStatus("Distance");
+                //}
+
+                //newState.Player.AddStatus(instigator.Name + "Wants" + key.Name);
+                newState.Player.AddStatus("Knows" + instigator.Name);
+
+                if (instigator.Name.Contains(DramaManager.PRISONER_TITLE)) {
+                    newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "Hey buddy, not sure who you are, but I need this thing."));
+                    newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "I need to try and get out of this place. I'll make it worth your while."));
+                } else if (instigator.Name.Contains(DramaManager.GUARD_TITLE)) {
+                    newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "Entity, I require your assistance."));
+                    newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "One of these monsters wishes to escape. Fetch me this device they desire and I'll reward you."));
+                }
+            }
+            return newState;
+        }
 		#endregion
 
 		#region TELLSTUFF
