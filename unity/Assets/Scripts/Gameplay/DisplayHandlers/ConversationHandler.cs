@@ -149,7 +149,6 @@ public class ConversationHandler : DisplayHandler {
 	}
 
 	public void TransferToChat(string name){
-		Debug.Log ("Transfer To Chat: " + name);
 		ChatHandler.Instance.SetCurrentConversation(name, new Color32(111,0,255,255), m_conversationHistories[name]);		
 	}
 }

@@ -132,7 +132,7 @@ namespace Indigo
         /// </summary>
         public static bool IsInstigatorMobile(GameState state, Character instigator, Character receiver = null, Item item = null) {
             var character = state.GetCharacter(instigator.Name);
-            return (character != null) ? character.HasStatus("Mobile") : false;
+            return (character != null) && character.HasStatus("Mobile");
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace Indigo
         /// </summary>
         public static bool IsReceiverMobile(GameState state, Character instigator, Character receiver, Item item = null) {
             var character = state.GetCharacter(receiver.Name);
-            return (character != null) ? character.HasStatus("Mobile") : false;
+            return (character != null) && character.HasStatus("Mobile");
         }
 
 		#region PLAYER CONDITIONS
@@ -179,7 +179,7 @@ namespace Indigo
 		}
 
 		public static bool PlayerHasLethalItem(GameState state, Character instigator, Character receiver, Item item = null) {
-			return state.Player.Items.Find (itom=>itom.HasStatus("Lethal"))!=null;
+			return item!=null && state.Player.Items.Find (itom=>itom.HasStatus("Lethal"))!=null;
 		}
 
         /// <summary>
@@ -251,6 +251,14 @@ namespace Indigo
             return state.Characters.Find(c => c.Name == instigator.Name).Items.Contains(item);
         }
 
+		public static bool DoesInstigatorNotHaveItem(GameState state, Character instigator, Character receiver, Item item) {
+			return !state.Characters.Find(c => c.Name == instigator.Name).Items.Contains(item);
+		}
+
+		public static bool ItemIsInstigators(GameState state, Character instigator, Character receiver, Item item) {
+			return item!=null && instigator!=null &&state.Characters.Find(c => c.Name == instigator.Name).Items.Contains(item);
+		}
+
         /// <summary>
         /// Returns whether or not the receiving character has a particular item.
         /// </summary>
@@ -264,6 +272,11 @@ namespace Indigo
 			return itm!=null;
 		}
 
+		public static bool DoesStateNotHaveLethalItem(GameState state, Character instigator, Character receiver, Item item) {
+			Item itm = state.Items.Find(i => i.Statuses.Contains("Lethal"));
+			return (itm == null);
+		}
+
         /// <summary>
         /// Returns whether or not the game environment contains a liberating item.
         /// </summary>
@@ -271,6 +284,15 @@ namespace Indigo
             Item itm = state.Items.Find(i => i.Statuses.Contains("Liberating"));
             return (itm != null);
         }
+
+		public static bool DoesStateNotHaveLiberatingItem(GameState state, Character instigator, Character receiver, Item item) {
+			Item itm = state.Items.Find(i => i.Statuses.Contains("Liberating"));
+			return (itm == null);
+		}
+
+		public static bool DoesStateNotHaveInstigatorItem(GameState state, Character instigator, Character receiver, Item item) {
+			return instigator!=null && (state.Items.Find(i => i.Name.Contains(instigator.Name)) == null) ;
+		}
 
 		public static bool IsItemDistance(GameState state, Character instigator, Character receiver, Item item) {
 			return item!=null && item.HasStatus("Distance");
@@ -281,11 +303,11 @@ namespace Indigo
 		}
 
         public static bool IsItemLethal(GameState state, Character instigator, Character receiver, Item item) {
-            return (item != null) ? item.HasStatus("Lethal") : false;
+            return (item != null) && item.HasStatus("Lethal");
         }
 
         public static bool IsItemLiberating(GameState state, Character instigator, Character receiver, Item item) {
-            return (item != null) ? item.HasStatus("Liberating") : false;
+            return (item != null) && item.HasStatus("Liberating");
         }
 
 		#endregion
@@ -332,6 +354,10 @@ namespace Indigo
 
 		public static bool InstigatorNotReceiver(GameState state, Character instigator, Character receiver, Item item) {
 			return instigator!=null && receiver!=null && instigator.Name!=receiver.Name;		
+		}
+
+		public static bool NotEnded(GameState state, Character instigator, Character receiver, Item item) {
+			return state.Intensity!=6;		
 		}
 
 		#endregion

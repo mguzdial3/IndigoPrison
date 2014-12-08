@@ -35,9 +35,15 @@ namespace Indigo
             GameState newState = state.Clone();
             var liberated = newState.GetCharacter(instigator.Name);
 
+			var libIndex = newState.Characters.FindIndex(c => c.Name == instigator.Name);
+
             if (liberated != null && liberated.HasItem(item)) {
                 liberated.Items.Remove(item);
-                newState.AddLine(liberated.Name, new DialogueLine(liberated.Name, "I'm free, no thanks to this " + item.Name + "!"));
+                newState.AddLine(liberated.Name, new DialogueLine(liberated.Name, "I'm free, thanks!"));
+
+				newState.Characters[libIndex] = liberated;
+
+
             }
 
             return newState;
@@ -177,16 +183,19 @@ namespace Indigo
         /// One of the preconditions should be that the receiving character has the item.
         /// This is the benign version of STEALING.
         /// </summary>
-        public static GameState TakeItemFromCharacter(GameState state, Character instigator, Character receiver, Item item) {
+        public static GameState TakeItemFromPlayer(GameState state, Character instigator, Character receiver, Item item) {
             GameState newState = state.Clone();
             var thief = newState.GetCharacter(instigator.Name);
-            var victim = newState.GetCharacter(receiver.Name);
+
+			var thiefIndex = newState.Characters.FindIndex(c => c.Name == instigator.Name);
 
             // Nothing should happen if for some reason the game state is mucked up.
-            if (thief != null && victim != null && victim.HasItem(item)) {
-                victim.Items.Remove(item);
-                thief.Items.Add(item);
+            if (thief != null && item!=null) {
+				newState.Player.RemoveItem(item);
+				thief.Items.Add(item);
                 newState.AddLine(thief.Name, new DialogueLine(thief.Name, "Great! Thanks for getting that for me!"));
+
+				newState.Characters[thiefIndex]=thief;
             }
 
             return newState;
@@ -324,14 +333,14 @@ namespace Indigo
                 //}
 
                 //newState.Player.AddStatus(instigator.Name + "Wants" + key.Name);
-                newState.Player.AddStatus("Knows" + instigator.Name);
+				newState.Player.AddStatus("Knows" + instigator.Name);
 
                 if (instigator.Name.Contains(DramaManager.PRISONER_TITLE)) {
                     newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "Hey buddy, not sure who you are, but I need this thing."));
                     newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "I need to try and get out of this place. I'll make it worth your while."));
                 } else if (instigator.Name.Contains(DramaManager.GUARD_TITLE)) {
                     newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "Entity, I require your assistance."));
-                    newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "One of these monsters wishes to escape. Fetch me this device they desire and I'll reward you."));
+                    newState.AddLine(instigator.Name, new DialogueLine(instigator.Name, "One of these monsters wishes to escape. Fetch me the device they desire and I'll reward you."));
                 }
             }
             return newState;
@@ -372,6 +381,7 @@ namespace Indigo
 			return newState;
 		}
 
+		//This is getting hit only during murder stuff, I think
 		public static GameState TellPlayerToComeBack(GameState state, Character instigator, Character receiver, Item item){
 			GameState newState = state.Clone();
 			
@@ -494,7 +504,7 @@ namespace Indigo
         /// </summary>
 		public static GameState BlowUpThePrison(GameState state, Character instigator, Character receiver, Item item){
 			GameState newState = state.Clone();			
-			newState.AddLine ("Indigo Prison",new DialogueLine("Indigo Prison", "The prison blew up. Whoops."));
+			newState.AddLine ("Indigo Prison",new DialogueLine("Indigo Prison", "The prison exploded, apparently one of the guards went mad."));
 			return newState;
 		}
 

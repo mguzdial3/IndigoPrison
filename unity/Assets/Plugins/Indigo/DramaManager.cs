@@ -43,17 +43,18 @@ namespace Indigo{
 			MAX_HEIGHT = maxHeight;
 
 			actionManager = new ActionManager ();
-			beginningStates = new InitializeState[]{InitializeGameState, InitializeGameState2, InitializeGameState3};
+			beginningStates = new InitializeState[]{InitializeGameState, InitializeGameState2, InitializeGameState3,InitializeGameState4,InitializeGameState5};
 		}
 
 		public GameState GetRandomStartState(){
 			//Pick random starting state
 			Random rand = new Random ();
-			InitializeState init = beginningStates [rand.Next (0, beginningStates.Length)];
+			InitializeState init = beginningStates [rand.Next (0, beginningStates.Length)]; //TODO; put this back
 			return init();
 		}
 
 		public GameState UpdateGameState(GameState currentGameState, float timeDelta){
+			lastCharacter="";
 			bool rePlan = false;
 			//Characters
 			foreach (Character character in currentGameState.Characters) {
@@ -280,8 +281,9 @@ namespace Indigo{
 			//Make Characters
 			Character playerCharacter = new Character (PLAYER_NAME, MAX_WIDTH / 2f, MAX_HEIGHT / 2f);
 			initState.Player = playerCharacter;
-			
-			Character prisonerCharacter =new Character(GetRandomPrisonerName(),playerCharacter.X+20,playerCharacter.Y);
+
+			Random r = new Random ();
+			Character prisonerCharacter =new Character(GetRandomPrisonerName(), playerCharacter.X -r.Next(20)+r.Next(20),playerCharacter.Y);
 			prisonerCharacter.Hidden = true;
 			prisonerCharacter.AddStatus ("Alive");
 			initState.AddCharacter (prisonerCharacter);
@@ -311,8 +313,8 @@ namespace Indigo{
 			//Make Characters
 			Character playerCharacter = new Character (PLAYER_NAME, MAX_WIDTH / 2f, MAX_HEIGHT / 2f);
 			initState.Player = playerCharacter;
-			
-			Character prisonerCharacter =new Character(GetRandomPrisonerName(),playerCharacter.X+20,playerCharacter.Y);
+			Random r = new Random ();
+			Character prisonerCharacter =new Character(GetRandomPrisonerName(), playerCharacter.X -r.Next(20)+r.Next(20),playerCharacter.Y);
 			prisonerCharacter.Hidden = true;
 			prisonerCharacter.AddStatus ("Alive");
 			initState.AddCharacter (prisonerCharacter);
@@ -346,7 +348,9 @@ namespace Indigo{
             Character playerCharacter = new Character(PLAYER_NAME, MAX_WIDTH / 2f, MAX_HEIGHT / 2f);
             initState.Player = playerCharacter;
 
-            Character prisonerCharacter = new Character(GetRandomPrisonerName(), playerCharacter.X + 20, playerCharacter.Y);
+			Random r = new Random ();
+
+            Character prisonerCharacter = new Character(GetRandomPrisonerName(), playerCharacter.X -r.Next(20)+r.Next(20), playerCharacter.Y);
             prisonerCharacter.Hidden = true;
             prisonerCharacter.AddStatus("Alive");
             initState.AddCharacter(prisonerCharacter);
@@ -359,15 +363,107 @@ namespace Indigo{
             initState.AddCharacter(guardCharacter);
 
             guardCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorAlive, guardCharacter, null, null));
-            guardCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.DoesStateHaveLiberatingItem, null, null, null));
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.IsReceiverDead, guardCharacter, prisonerCharacter, null));
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.StateHasLethalItem, null, null, null));
 
             prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorAlive, prisonerCharacter, null, null));
             prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorMobile, prisonerCharacter, null, null));
-            prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.DoesStateHaveLiberatingItem, null, null, null));
+			prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.DoesStateHaveLiberatingItem, null, null, null));
+			prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.DoesStateNotHaveLethalItem, null, null, null));
 
             return initState;
         }
+
+		public GameState InitializeGameState4() {
+			GameState initState = new GameState();
+			
+			//Make Characters
+			Character playerCharacter = new Character(PLAYER_NAME, MAX_WIDTH / 2f, MAX_HEIGHT / 2f);
+			initState.Player = playerCharacter;
+			
+			Random r = new Random ();
+			
+			Character prisonerCharacter = new Character(GetRandomPrisonerName(), playerCharacter.X -r.Next(20)+r.Next(20), playerCharacter.Y);
+			prisonerCharacter.Hidden = true;
+			prisonerCharacter.AddStatus("Alive");
+			initState.AddCharacter(prisonerCharacter);
+			
+			Location loc = GetNewCharacterLocation(initState);
+			
+			Character guardCharacter = new Character(GetRandomGuardName(), loc.X, loc.Y);
+			guardCharacter.Hidden = true;
+			guardCharacter.AddStatus("Alive");
+			initState.AddCharacter(guardCharacter);
+
+			Location loc2 = GetNewCharacterLocation(initState);
+
+			Character prisonerCharacter2 = new Character(GetRandomPrisonerName(), loc2.X, loc2.Y);
+			prisonerCharacter2.Hidden = true;
+			prisonerCharacter2.AddStatus("Alive");
+			initState.AddCharacter(prisonerCharacter2);
+			
+			guardCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorAlive, guardCharacter, null, null));
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.IsReceiverDead, guardCharacter, prisonerCharacter, null));
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.StateHasLethalItem, null, null, null));
+
+			prisonerCharacter2.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorAlive, prisonerCharacter2, null, null));
+			prisonerCharacter2.Goals.Add (new CharacterGoal (ConditionLibrary.IsReceiverDead, prisonerCharacter2, prisonerCharacter, null));
+			prisonerCharacter2.Goals.Add (new CharacterGoal (ConditionLibrary.StateHasLethalItem, null, null, null));
+
+			prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorAlive, prisonerCharacter, null, null));
+			prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorMobile, prisonerCharacter, null, null));
+			prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.DoesStateHaveLiberatingItem, null, null, null));
+			prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.DoesStateNotHaveLethalItem, null, null, null));
+			
+			return initState;
+		}
+
+		public GameState InitializeGameState5() {
+			GameState initState = new GameState();
+			
+			//Make Characters
+			Character playerCharacter = new Character(PLAYER_NAME, MAX_WIDTH / 2f, MAX_HEIGHT / 2f);
+			initState.Player = playerCharacter;
+			
+			Random r = new Random ();
+			
+			Character prisonerCharacter = new Character(GetRandomPrisonerName(), playerCharacter.X -r.Next(20)+r.Next(20), playerCharacter.Y);
+			prisonerCharacter.Hidden = true;
+			prisonerCharacter.AddStatus("Alive");
+			initState.AddCharacter(prisonerCharacter);
+			
+			Location loc = GetNewCharacterLocation(initState);
+			
+			Character guardCharacter = new Character(GetRandomGuardName(), loc.X, loc.Y);
+			guardCharacter.Hidden = true;
+			guardCharacter.AddStatus("Alive");
+			initState.AddCharacter(guardCharacter);
+			
+			Location loc2 = GetNewCharacterLocation(initState);
+			
+			Character prisonerCharacter2 = new Character(GetRandomPrisonerName(), loc2.X, loc2.Y);
+			prisonerCharacter2.Hidden = true;
+			prisonerCharacter2.AddStatus("Alive");
+			initState.AddCharacter(prisonerCharacter2);
+			
+			guardCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorAlive, guardCharacter, null, null));
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.IsReceiverDead, guardCharacter, prisonerCharacter, null));
+			guardCharacter.Goals.Add (new CharacterGoal (ConditionLibrary.StateHasLethalItem, null, null, null));
+
+			prisonerCharacter2.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorAlive, prisonerCharacter2, null, null));
+			prisonerCharacter2.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorMobile, prisonerCharacter2, null, null));
+			prisonerCharacter2.Goals.Add(new CharacterGoal(ConditionLibrary.DoesStateHaveLiberatingItem, null, null, null));
+			prisonerCharacter2.Goals.Add(new CharacterGoal(ConditionLibrary.DoesStateNotHaveLethalItem, null, null, null));
+
+			
+			prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorAlive, prisonerCharacter, null, null));
+			prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.IsInstigatorMobile, prisonerCharacter, null, null));
+			prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.DoesStateHaveLiberatingItem, null, null, null));
+			prisonerCharacter.Goals.Add(new CharacterGoal(ConditionLibrary.DoesStateNotHaveLethalItem, null, null, null));
+			
+			return initState;
+		}
 	}
-
-
+	
+	
 }

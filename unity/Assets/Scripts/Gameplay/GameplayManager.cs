@@ -16,6 +16,7 @@ public class GameplayManager : MonoBehaviour {
 
 	public static GameplayManager Instance;
 
+	private bool finaleHappened=false;
 
 	void Awake () {
 		//Add all the necessary components
@@ -70,10 +71,11 @@ public class GameplayManager : MonoBehaviour {
 		}
 		else{
 			UpdateDisplay ();
-			if(m_dramaManager.AreWeDone()){
-				ConversationHandler.Instance.TransferToChat("Indigo Prison");
-				SwitchDisplays(ChatHandler.Instance.DisplayName);
-				
+
+			if(m_dramaManager.AreWeDone() && !finaleHappened){
+				finaleHappened=true;
+
+				SwitchDisplays(ConversationHandler.Instance.DisplayName);
 			}
 		}
 

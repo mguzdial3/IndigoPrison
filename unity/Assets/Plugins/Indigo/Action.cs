@@ -59,7 +59,10 @@ namespace Indigo
             if (DoPreconditionsHold(state, instigator, receiver, item)) {
 				GameState newState = this.Action(state, instigator, receiver, item);
 				DramaManager.Instance.CheckIntensity(Intensity);
-				return this.Action(state, instigator, receiver, item);
+				if(newState.Intensity< Intensity){
+					newState.Intensity = Intensity;
+				}
+				return newState;
             }
 			else{
 				return null;
@@ -101,6 +104,10 @@ namespace Indigo
 			return precogHolds;
 		}
 
+		public void AddCondition(Condition c){
+			this.Preconditions.Add (c);
+		}
+
     } // END ActionAggregate
 
     /// <summary>
@@ -121,54 +128,56 @@ namespace Indigo
 			allActions = new List<ActionAggregate>();
 
 			var preconditions = new List<Condition>{ ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerKnowsAboutDesireToKill, ConditionLibrary.PlayerKnowsToKillReceiver, ConditionLibrary.PlayerHasLethalItem, ConditionLibrary.PlayerCloseEnoughToRevealReceiver, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.IsItemNotDistance};
-			var killCharacter = new ActionAggregate(ActionLibrary.CloseKillCharacter, 5, preconditions);
+			var killCharacter = new ActionAggregate(ActionLibrary.CloseKillCharacter, 6, preconditions);
 			this.AddAction(killCharacter);
 
 			preconditions = new List<Condition>{ ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.PlayerKnowsAboutDesireToKill, ConditionLibrary.PlayerHasLethalItem, ConditionLibrary.IsItemDistance, ConditionLibrary.PlayerHasInstigatorItem};//ConditionLibrary.IsItemDistance TODO; This is a problem
-			killCharacter = new ActionAggregate(ActionLibrary.DistanceKillCharacter, 5, preconditions);
+			killCharacter = new ActionAggregate(ActionLibrary.DistanceKillCharacter, 6, preconditions);
 			this.AddAction(killCharacter);
 
-			preconditions = new List<Condition>{ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerKnowsAboutDesireToKill, ConditionLibrary.PlayerHasLethalItem, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.PlayerDoesntKnowToKillReceiver, ConditionLibrary.PlayerDoesntKnowAboutWantsItem};
+			//preconditions = new List<Condition>{ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerKnowsAboutDesireToKill, ConditionLibrary.PlayerHasLethalItem, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.PlayerDoesntKnowToKillReceiver, ConditionLibrary.PlayerDoesntKnowAboutWantsItem};
+			preconditions = new List<Condition>{ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerHasLethalItem, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.PlayerDoesntKnowAboutWantsItem};
 			killCharacter = new ActionAggregate(ActionLibrary.TellPlayerToComeBack, 3, preconditions);
 			this.AddAction(killCharacter);
 
 			preconditions = new List<Condition>{ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerHasLethalItem, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.PlayerDoesntKnowToKillReceiver, ConditionLibrary.PlayerKnowsAboutWantsItem, ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.IsItemNotDistance};
-			//preconditions = new List<Condition>{ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerKnowsAboutDesireToKill, ConditionLibrary.PlayerHasLethalItem, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.PlayerDoesntKnowToKillReceiver, ConditionLibrary.PlayerDoesntKnowAboutWantsItem};
 			killCharacter = new ActionAggregate(ActionLibrary.TellPlayerToKill, 4, preconditions);
 			this.AddAction(killCharacter);
 
-			preconditions = new List<Condition>{ ConditionLibrary.IsInstigatorHidden, ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.PlayerDoesntKnowAboutDesireToKill, ConditionLibrary.PlayerDoesntKnowsInstigator,  ConditionLibrary.InstigatorNotReceiver};
+			preconditions = new List<Condition>{ ConditionLibrary.IsInstigatorHidden, ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.PlayerDoesntKnowAboutDesireToKill, ConditionLibrary.PlayerDoesntKnowsInstigator,  ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.DoesStateNotHaveInstigatorItem};
 			var intro = new ActionAggregate(ActionLibrary.IntroduceMurderQuest, 2, preconditions);
 			this.AddAction(intro);
 
-			preconditions = new List<Condition>{ ConditionLibrary.IsInstigatorHidden, ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.PlayerDoesntKnowsInstigator};
+			preconditions = new List<Condition>{ ConditionLibrary.IsInstigatorHidden, ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.PlayerDoesntKnowsInstigator, ConditionLibrary.DoesStateNotHaveInstigatorItem};
 			intro = new ActionAggregate(ActionLibrary.IntroduceSelf, 1, preconditions);
 			this.AddAction(intro);
 
-			preconditions = new List<Condition>{ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.PlayerDoesntKnowAboutDesireToKill, ConditionLibrary.PlayerKnowsInstigator, ConditionLibrary.InstigatorNotReceiver};
+			preconditions = new List<Condition>{ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.PlayerDoesntKnowAboutDesireToKill, ConditionLibrary.PlayerKnowsInstigator, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.DoesStateNotHaveInstigatorItem};
 			intro = new ActionAggregate(ActionLibrary.TellWantToKill, 2, preconditions);
-			this.AddAction(intro);
+			this.AddAction(intro); //TODO; figure out if can remove this
 
-			preconditions = new List<Condition>{ConditionLibrary.PlayerDoesntKnowsInstigator, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerHasReceiverItem};
+			preconditions = new List<Condition>{ConditionLibrary.PlayerDoesntKnowsInstigator, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerHasReceiverItem, ConditionLibrary.DoesStateNotHaveInstigatorItem};
 			intro = new ActionAggregate(ActionLibrary.IntroduceSelfDistance, 1, preconditions);
 			this.AddAction(intro);
 
             // The escape quest.
-            preconditions = new List<Condition> { ConditionLibrary.IsInstigatorHidden, ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.PlayerDoesntKnowsInstigator, ConditionLibrary.InstigatorNotReceiver };
+			preconditions = new List<Condition> { ConditionLibrary.IsInstigatorHidden, ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.PlayerDoesntKnowsInstigator, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.DoesStateNotHaveInstigatorItem};
             intro = new ActionAggregate(ActionLibrary.IntroduceEscapeQuest, 2, preconditions);
             this.AddAction(intro);
 
-            preconditions = new List<Condition> { ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerHasLiberatingItem, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.PlayerDoesntKnowAboutWantsItem, ConditionLibrary.DoesStateHaveLiberatingItem };
+            preconditions = new List<Condition> { ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerHasLiberatingItem, ConditionLibrary.PlayerDoesntKnowAboutWantsItem, ConditionLibrary.DoesStateHaveLiberatingItem };
             var escape = new ActionAggregate(ActionLibrary.TellPlayerToComeBack, 3, preconditions);
             this.AddAction(escape);
 
-            preconditions = new List<Condition> { ConditionLibrary.IsInstigatorAlive, ConditionLibrary.IsReceiverAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.PlayerHasLiberatingItem, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.PlayerCloseEnoughToRevealReceiver, ConditionLibrary.DoesStateHaveLiberatingItem, ConditionLibrary.PlayerKnowsAboutWantsItem };
-            escape = new ActionAggregate(ActionLibrary.TakeItemFromCharacter, 2, preconditions);
+			preconditions = new List<Condition> { ConditionLibrary.IsInstigatorAlive, ConditionLibrary.PlayerHasLiberatingItem, ConditionLibrary.PlayerHasInstigatorItem, ConditionLibrary.CloseEnoughToPlayer, ConditionLibrary.PlayerKnowsAboutWantsItem };
+            escape = new ActionAggregate(ActionLibrary.TakeItemFromPlayer, 2, preconditions);
             this.AddAction(escape);
 
-            preconditions = new List<Condition> { ConditionLibrary.IsInstigatorAlive, ConditionLibrary.InstigatorNotReceiver, ConditionLibrary.DoesInstigatorHaveItem, ConditionLibrary.IsItemLiberating, ConditionLibrary.DoesStateHaveLiberatingItem };
-            escape = new ActionAggregate(ActionLibrary.FreeCharacterWithItem, 5, preconditions);
-            this.AddAction(escape);        
+			preconditions = new List<Condition> { ConditionLibrary.IsInstigatorAlive, ConditionLibrary.DoesInstigatorHaveItem, ConditionLibrary.IsItemLiberating, ConditionLibrary.ItemIsInstigators };
+            escape = new ActionAggregate(ActionLibrary.FreeCharacterWithItem, 6, preconditions);
+            this.AddAction(escape);  
+
+			AddConditionToAll (ConditionLibrary.NotEnded);
         }
 
 		private void ConstructDMActions(){
@@ -186,6 +195,12 @@ namespace Indigo
         public void AddAction(ActionAggregate newAction){
             allActions.Add(newAction);
         }
+
+		public void AddConditionToAll(Condition c){
+			foreach(ActionAggregate a in allActions){
+				a.AddCondition(c);
+			}
+		}
 
         /// <summary>
         /// Returns a subset of actions with the specified intensity.

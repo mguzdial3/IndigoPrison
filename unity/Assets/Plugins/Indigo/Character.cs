@@ -145,6 +145,13 @@ namespace Indigo
       return Items.Contains (item);
     }
 
+	public void RemoveItem(Item item){
+		if (item != null) {
+			Item i = Items.Find (c => c.Name == item.Name);	
+			Items.Remove(i);
+		}
+	}
+
     // ACTION STUFF
 
 

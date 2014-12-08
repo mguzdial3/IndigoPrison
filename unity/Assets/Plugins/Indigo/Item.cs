@@ -52,8 +52,8 @@ namespace Indigo{
     /// <returns>True, if the status was a valid status and added to the item, false otherwise.</returns>
     public bool AddStatus(string statusName) {
       if ( !this.Statuses.Contains(statusName)) {
-	this.Statuses.Add(statusName);
-	return true;
+		this.Statuses.Add(statusName);
+		return true;
       }
       return false;
     }
@@ -73,11 +73,11 @@ namespace Indigo{
     /// <param name="statusName">The name of a status (e.g. "Lethal").</param>
     /// <returns>True, if the character has this status and it is removed successfully, false otherwise.</returns>
     public bool RemoveStatus(string statusName) {
-      if (ITEM_STATUSES.Contains(statusName)) {
+     // if (ITEM_STATUSES.Contains(statusName)) {
 	// List.Remove should handle the contains check.
 	return this.Statuses.Remove(statusName);
-      }
-      return false;
+      //}
+      //return false;
     }
 #endregion
 
